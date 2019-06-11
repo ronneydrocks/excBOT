@@ -1,0 +1,2 @@
+# excBOT
+Cryptocurrency Trading Bot
