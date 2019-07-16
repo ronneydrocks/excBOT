@@ -22,9 +22,8 @@ O BOT está em fase de testes, NÃO HÁ NENHUMA GARANTIA DE GANHOS. O BOT está 
 
 DICA:
 * A principal configuração do BOT para ficar positivo, é o SPREAD. No arquivo de configuração, config.py, tem uma opção para configura-lo.
-* Para ficar positivo é necessário configurar o SPREAD + FEE.
+* Para ficar positivo é necessário ficar acima do SPREAD + FEE.
 * FEE  0.25 (EXC/BLEU)
-* Configurar o spread correto para não ficar negativo por causa da FEE.
 
 Spread refere-se à diferença entre o preço de compra (procura) e venda (oferta) de um ativo.
 
