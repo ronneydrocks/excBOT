@@ -41,7 +41,7 @@ Após instalação e configuração. Abra um terminal e execute o comando para q
 4. Configurar BOT com KEYs (EXC e BLEU)
 5. Rodar
 
-#ATUALIZAÇÕES
+# ATUALIZAÇÕES
 
 VERSÃO: 0.1.5
 - Melhora no tratamento dos erros (RESPONSE)
