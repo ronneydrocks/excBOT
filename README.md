@@ -1,5 +1,5 @@
 # excBOT
-Atualmente o BOT está na versão v0.1.5(TESTE) e sua função é automatizar arbitragens entre as EXC CRIPTO e BLEUTRADE. Sua estratégia principal é comprar mais barato e vender mais caro conforme SPREAD configurado pelo usuário.
+Atualmente o BOT está na versão v0.1.5(TESTE) e sua função é automatizar arbitragens entre as EXC CRIPTO e BLEUTRADE. Comprar mais barato em uma exchange e vender mais caro na outra.
 
 
 # FUNÇÕES
