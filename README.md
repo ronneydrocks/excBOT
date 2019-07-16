@@ -30,15 +30,15 @@ Spread refere-se à diferença entre o preço de compra (procura) e venda (ofert
 # COMO FUNCIONA
 O BOT monitora os books e compara os valores, caso encontre oportunidades, compra mais barato em uma exchange e vender mais caro na outra e automaticamente executa os comandos em alguns segundos.
 
-# COMO EXECUTAR
-Após instalação e configuração. Abra um terminal e execute o comando para que o BOT inicie o trabalho.
-
-# INSTALAÇÃO
+# PASSOS
 1. Cadastre na EXC CRIPTO(https://exccripto.com) e BLEUTRADE(https://bleutrade.com)
 2. Gerar Key/Secret na EXC e BLEU
 3. Instalar python, pip e requests
 4. Configurar BOT com KEYs (EXC e BLEU)
 5. Rodar
+
+# COMO EXECUTAR
+Após instalação e configuração. Abra um terminal e execute o comando para que o BOT inicie o trabalho.
 
 # ATUALIZAÇÕES
 
