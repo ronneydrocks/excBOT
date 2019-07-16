@@ -45,12 +45,13 @@ Após instalação e configuração. Abra um terminal e execute o comando para q
 
 VERSÃO: 0.1.5
 - Melhora no tratamento dos erros (RESPONSE)
+- Melhora da função AUTO BALANCE
 - Adicionado informação sobre FEE
 - Adicionado informação sobre Arbitragem
 - Adicionado informação sobre SPREAD (em % e USDT)
 - Adicionado simulador de arbitragem (Ajuda escolher melhor SPREAD)
 - Correção ordens venda mínima (Muita ordens abertas no book)
- - Melhora da função AUTO BALANCE
+- Correção FLOOD de ERR_LOW_VOLUME no Telegram
 
 VERSÃO: 0.1.4
 - Adicionado verificação de saldo
