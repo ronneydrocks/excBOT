@@ -124,6 +124,38 @@ while True:
             compraAtivoBLEU = float(dicionarioBLEU['result'][0]['Bid'])
             vendaAtivoBLEU = float(dicionarioBLEU['result'][0]['Ask'])
 
+            ##########################################################
+            #               CANCELA ORDENS ABERTAS
+            ##########################################################
+            print('\n>> ORDENS:')
+            ##########################################################
+            # EXC: Verifica ordens abertar
+            getOpenOrder = key_secretEXC.get_open_orders()
+            if not getOpenOrder['result']:
+                print('EXC: SEM ORDENS ABERTAS')
+            else:
+                nOpenOrder = len(getOpenOrder['result'])
+                c = 0
+                while c < nOpenOrder:
+                    OrderID = getOpenOrder['result'][c]['OrderID']
+                    cancelaOrder = key_secretEXC.cancel(OrderID)
+                    c += 1
+
+            ##########################################################
+            # BLEU: Verifica ordens abertar
+            getOpenOrder = key_secretBLEU.get_open_orders()
+            if not getOpenOrder['result']:
+                print('BLEU: SEM ORDENS ABERTAS')
+            else:
+                nOpenOrder = len(getOpenOrder['result'])
+                c = 0
+                while c < nOpenOrder:
+                    OrderID = getOpenOrder['result'][c]['OrderID']
+                    cancelaOrder = key_secretEXC.cancel(OrderID)
+                    c += 1
+
+            ##########################################################
+
 ####################################################################################
 # COMPRAR na BLEU, VENDER na EXC 1
 ####################################################################################
