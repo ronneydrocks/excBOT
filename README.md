@@ -1,15 +1,15 @@
 # excBOT
-Atualmente o BOT est· na vers„o v0.1.5(TESTE) e sua funÁ„o È automatizar arbitragens entre as EXC CRIPTO e BLEUTRADE. Sua estratÈgia principal È comprar mais barato e vender mais caro conforme SPREAD configurado pelo usu·rio.
+Atualmente o BOT est√° na vers√£o v0.1.5(TESTE) e sua fun√ß√£o √© automatizar arbitragens entre as EXC CRIPTO e BLEUTRADE. Comprar mais barato em uma exchange e vender mais caro na outra.
 
 
-# FUN«’ES
+# FUN√á√ïES
 * Monitorar livro de ordens
 * Analisa e compara valores
 * Analisa quantidades para definir compra
-* Efetua compra, transferÍncia e venda
+* Efetua compra, transfer√™ncia e venda
 * Mostrar saldo via Telegram
-* Mostrar informaÁıes da arbitragem via Telegram
-* Compra de valores mÌnimos se saldo for insuficiente
+* Mostrar informa√ß√µes da arbitragem via Telegram
+* Compra de valores m√≠nimos se saldo for insuficiente
 * Auto balance
 * Tratamento de erros response
 * Calcula SPREAD
@@ -17,65 +17,66 @@ Atualmente o BOT est· na vers„o v0.1.5(TESTE) e sua funÁ„o È automatizar arbitra
 * Simulador de arbitragem
 
 
-# ATEN«√O:
-O BOT est· em fase de testes, N√O H¡ NENHUMA GARANTIA DE GANHOS. O BOT est· sendo desenvolvido, est· sujeito a erros e por esse motivo est· em constantes atualizaÁıes. O desenvolvedor do excBOT N√O SE RESPONSABILIZA POR PREJUÕZOS ocasionados por mal uso do BOT.
+# ATEN√á√ÉO:
+O BOT est√° em fase de testes, N√ÉO H√Å NENHUMA GARANTIA DE GANHOS. O BOT est√° sendo desenvolvido, est√° sujeito a erros e por esse motivo est√° em constantes atualiza√ß√µes. O desenvolvedor do excBOT N√ÉO SE RESPONSABILIZA POR PREJU√çZOS ocasionados por mal uso do BOT.
 
 DICA:
-* A principal configuraÁ„o do BOT para ficar positivo, È o SPREAD. No arquivo de configuraÁ„o, config.py, tem uma opÁ„o para configura-lo.
-* Para ficar positivo È necess·rio configurar o SPREAD + FEE.
+* A principal configura√ß√£o do BOT para ficar positivo, √© o SPREAD. No arquivo de configura√ß√£o, config.py, tem uma op√ß√£o para configura-lo.
+* Para ficar positivo √© necess√°rio ficar acima do SPREAD + FEE.
 * FEE  0.25 (EXC/BLEU)
-* Configurar o spread correto para n„o ficar negativo por causa da FEE.
 
-Spread refere-se ‡ diferenÁa entre o preÁo de compra (procura) e venda (oferta) de um ativo.
+Spread refere-se √† diferen√ßa entre o pre√ßo de compra (procura) e venda (oferta) de um ativo.
 
 # COMO FUNCIONA
 O BOT monitora os books e compara os valores, caso encontre oportunidades, compra mais barato em uma exchange e vender mais caro na outra e automaticamente executa os comandos em alguns segundos.
 
-# COMO EXECUTAR
-ApÛs instalaÁ„o e configuraÁ„o. Abra um terminal e execute o comando para que o BOT inicie o trabalho.
-
-# INSTALA«√O
+# PASSOS
 1. Cadastre na EXC CRIPTO(https://exccripto.com) e BLEUTRADE(https://bleutrade.com)
 2. Gerar Key/Secret na EXC e BLEU
 3. Instalar python, pip e requests
 4. Configurar BOT com KEYs (EXC e BLEU)
 5. Rodar
 
-#ATUALIZA«’ES
-VERS√O: 0.1.5
+# COMO EXECUTAR
+Ap√≥s instala√ß√£o e configura√ß√£o. Abra um terminal e execute o comando para que o BOT inicie o trabalho.
+
+# ATUALIZA√á√ïES
+
+VERS√ÉO: 0.1.5
 - Melhora no tratamento dos erros (RESPONSE)
-- Adicionado informaÁ„o sobre FEE
-- Adicionado informaÁ„o sobre Arbitragem
-- Adicionado informaÁ„o sobre SPREAD (em % e USDT)
+- Melhora da fun√ß√£o AUTO BALANCE
+- Adicionado informa√ß√£o sobre FEE
+- Adicionado informa√ß√£o sobre Arbitragem
+- Adicionado informa√ß√£o sobre SPREAD (em % e USDT)
 - Adicionado simulador de arbitragem (Ajuda escolher melhor SPREAD)
-- CorreÁ„o ordens venda mÌnima (Muita ordens abertas no book)
- - Melhora da funÁ„o AUTO BALANCE
+- Corre√ß√£o ordens venda m√≠nima (Muita ordens abertas no book)
+- Corre√ß√£o FLOOD de ERR_LOW_VOLUME no Telegram
 
-VERS√O: 0.1.4
-- Adicionado verificaÁ„o de saldo
-- FunÁ„o que informa se houve lucros ou perdas
+VERS√ÉO: 0.1.4
+- Adicionado verifica√ß√£o de saldo
+- Fun√ß√£o que informa se houve lucros ou perdas
 
-VERS√O: 0.1.3
+VERS√ÉO: 0.1.3
 - Adicionado Mercado USDT (excbleu BTC/USDT)
-- Adicionado informaÁ„o do lucro nas arbitragens
-- FormataÁ„o logs telegram
-- FormataÁ„o logs txt
+- Adicionado informa√ß√£o do lucro nas arbitragens
+- Formata√ß√£o logs telegram
+- Formata√ß√£o logs txt
 
-VERS√O: 0.1.2
+VERS√ÉO: 0.1.2
 - Adicionado logs em txt
 - Adicionado logs via Telegram 
 
-VERS√O: 0.1.1
+VERS√ÉO: 0.1.1
 - Adicionado auto balance
-- Adicionado compra mÌnima
+- Adicionado compra m√≠nima
 
-VERS√O: 0.1.0
+VERS√ÉO: 0.1.0
 - Adicionado ordem de compra
-- Adicionado ordem de transferÍncia via DIREC TRANSFER
+- Adicionado ordem de transfer√™ncia via DIREC TRANSFER
 - Adicionado ordem de venda
 
-VERS√O: 0.0.1
-- Busca informaÁıes nas exchanges EXC e BLEU
+VERS√ÉO: 0.0.1
+- Busca informa√ß√µes nas exchanges EXC e BLEU
 - Monitora book no mercado BTC
 - Monitora book no mercado DOGE
 - Compara valores de compra e venda nas exchanges EXC e BLEU
