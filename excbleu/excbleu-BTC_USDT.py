@@ -336,7 +336,7 @@ while True:
                         print(f'Fee: {pagafee:.8f}')
 
                         faz_compra = key_secretBLEU.buy_limit('BTC_USDT', vendaAtivoBLEU, minimaCompra_BTC_USDT)
-                        print(f'Comprando... {minimaCompra_BTC_USDT:.8f} BTC')
+                        print(f'(1)Comprando... {minimaCompra_BTC_USDT:.8f} BTC')
                         print(faz_compra)
 
                         # Mensagem Telegram
@@ -616,13 +616,14 @@ while True:
                         # Faz COMPRA MÍNIMA na BLEU: MOEDA_MERCADO, PREÇO, QUANTIDADE  #
                         ################################################################
                         print(' >>> FAZENDO COMPRA MÍNIMA <<<\n')
+                        time.sleep(1)
 
                         # calcula fee
                         pagafee = (feeBLEU / 100) * minimaCompra_BTC_USDT
                         print(f'Fee: {pagafee:.8f}')
 
                         faz_compra = key_secretBLEU.buy_limit('BTC_USDT', vendaAtivoBLEU, minimaCompra_BTC_USDT)
-                        print(f'Comprando... {minimaCompra_BTC_USDT:.8f} BTC')
+                        print(f'(2)Comprando... {minimaCompra_BTC_USDT:.8f} BTC')
                         print(faz_compra)
 
                         # Mensagem Telegram
