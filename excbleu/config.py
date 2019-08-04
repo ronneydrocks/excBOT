@@ -1,4 +1,4 @@
-﻿import requests
+import requests
 import bleuBot
 import excBot
 
@@ -23,6 +23,11 @@ key_secretBLEU = bleuBot.bleuBot(keyBLEU, secretBLEU, nonce=True)
 bot_id_telegram = '_EDITAR_AQUI_'
 chat_id = '_EDITAR_AQUI_'
 ################################################
+#           COTAÇÃO BRL - CoinGecko            #
+################################################
+urlBTC_BRL = 'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=brl'
+coinGecko_BTC_USD = 'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd'
+################################################
 #           SALDO INICIAL EM BTC               #
 ################################################
 saldoInicial_EXC = 0.00000000                                       # EDITAR
@@ -31,15 +36,24 @@ saldoInicial_BLEU = 0.00000000                                      # EDITAR
 #           GLOBAL - PESSOAL                   #
 ################################################
 
+# CANCELA ORDEM - Habilitado 1 / Desabilitado 0
+funCancelaOrdens = 0
+
+# AUTO BALANCE - Habilitado 1 / Desabilitado 0
+funAutoBalance = 1
+
+# COMPRA MÍNIMA - Habilitado 1 / Desabilitado 0
+funCompraMinima = 1
+
 ######### SPREAD BTC 16/07/2019 ########
 
 # SPREAD BTC
-spread_ETH_BTC = 0.00001000       # EDITAR (opcional)
-spread_LTC_BTC = 0.00001000       # EDITAR (opcional)
+spread_ETH_BTC = 0.00012720       # EDITAR (opcional)
+spread_LTC_BTC = 0.00006000       # EDITAR (opcional)
 
 # Mínina BTC
 minimaCompra_ETH_BTC = 0.00550000           # EDITAR (opcional)
-minimaCompra_LTC_BTC = 0.00800000           # EDITAR (opcional)
+minimaCompra_LTC_BTC = 0.01200000           # EDITAR (opcional)
 
 ######### SPREAD USDT 16/07/2019 ########
 
@@ -47,17 +61,11 @@ minimaCompra_LTC_BTC = 0.00800000           # EDITAR (opcional)
 spread_BTC_USDT = 60.00000000    # EDITAR (opcional)
 
 # Mínina USDT
-minimaCompra_BTC_USDT = 0.00010000         # EDITAR (opcional)
+minimaCompra_BTC_USDT = 0.00020000         # EDITAR (opcional)
 
 # FEE exchanges
 feeEXC = 0.25
 feeBLEU = 0.25
-
-################################################
-#           COTAÇÃO BRL - CoinGecko            #
-################################################
-urlBTC_BRL = 'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=brl'
-coinGecko_BTC_USD = 'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd'
 
 ################################################
 #           EXC CRIPTO - LINKS                 #

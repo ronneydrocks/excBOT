@@ -13,32 +13,39 @@ import config
 emailBLEU = config.emailBLEU
 keyBLEU = config.keyBLEU
 secretBLEU = config.secretBLEU
-
 key_secretBLEU = bleuBot.bleuBot(keyBLEU, secretBLEU, nonce=True)
 
 # EXC CRIPTO
 emailEXC = config.emailEXC
 keyEXC = config.keyEXC
 secretEXC = config.secretEXC
-
 key_secretEXC = excBot.excBot(keyEXC, secretEXC, nonce=True)
 
 # SPREAD entre os preços em BTC
 spread_ETH_BTC = config.spread_ETH_BTC
 
-# minina
+# COMPRA MÍNIMA
 minimaCompra_ETH_BTC = config.minimaCompra_ETH_BTC
 
-# tempo de verificação em segundos
+# TEMPORIZADOR DA VERIFICAÇÃO
 tempoVerificacao = config.tempoVerificacao
 
-# FEE exchanges
+# FEE
 feeEXC = config.feeEXC
 feeBLEU = config.feeBLEU
 
 # ERRO
 listaErro1 = 'ERR_LOW_VOLUME', 'ERR_INVALID_AMOUNT', 'ERR_LOGIN_REQUIRED'
 listaErroMinima = 'ERR_LOW_VOLUME', 'ERR_INVALID_AMOUNT', 'ERR_LOGIN_REQUIRED', 'ERR_INSUFICIENT_BALANCE'
+
+# CANCELA ORDEM
+funCancelaOrdens = config.funCancelaOrdens
+
+# AUTO BALANCE
+funAutoBalance = config.funAutoBalance
+
+# COMPRA MÍNIMA
+funCompraMinima = config.funCompraMinima
 
 ########################################################################
 
@@ -72,13 +79,10 @@ while True:
             print('-x-' * 20)
             ########################################################################
 
-            # Valor ETH em BTC
             url_vETH_BTC = config.urlGettickerEXC_ETH_BTC
             r_vETH_BTC = requests.get(url_vETH_BTC)
             j_vETH_BTC = json.loads(r_vETH_BTC.text)
             vETH_BTC = j_vETH_BTC['result'][0]['Last']
-
-            # print('\n >> QUANTIDADES << \n')
 
             urlGetOrderBookBLEU_BUY_ETH_BTC = config.urlGetOrderBookBLEU_BUY_ETH_BTC
             rBLEU = requests.get(urlGetOrderBookBLEU_BUY_ETH_BTC)
@@ -100,29 +104,65 @@ while True:
             jEXC = json.loads(rEXC.text)
             quantidade_vendendoEXC = jEXC['result']['sell'][0]['Quantity']
 
-            # print('-' * 10)
-
-            # print('\nMERCADO EXC: ETH_BTC')
             urlGettickerEXC = config.urlGettickerEXC_ETH_BTC
             requisicaoEXC = requests.get(urlGettickerEXC)
             dicionarioEXC = json.loads(requisicaoEXC.text)
 
             lastAtivoEXC = float(dicionarioEXC['result'][0]['Last'])
-            # print(f'Última: {lastAtivoEXC:.8f}')
             compraAtivoEXC = float(dicionarioEXC['result'][0]['Bid'])
             vendaAtivoEXC = float(dicionarioEXC['result'][0]['Ask'])
 
-            # print('-' * 10)
-
-            # print('\nMERCADO BLEU: ETH_BTC')
             urlGettickerBLEU = config.urlGettickerBLEU_ETH_BTC
             requisicaoBLEU = requests.get(urlGettickerBLEU)
             dicionarioBLEU = json.loads(requisicaoBLEU.text)
 
             lastAtivoBLEU = float(dicionarioBLEU['result'][0]['Last'])
-            # print(f'Última: {lastAtivoBLEU:.8f}')
             compraAtivoBLEU = float(dicionarioBLEU['result'][0]['Bid'])
             vendaAtivoBLEU = float(dicionarioBLEU['result'][0]['Ask'])
+
+            ##########################################################
+            #               CANCELA ORDENS ABERTAS
+            ##########################################################
+            if funCancelaOrdens == 1:
+                ##########################################################
+                print('\n>> ORDENS:')
+                ##########################################################
+                # EXC: Verifica ordens abertar
+                getOpenOrder = key_secretEXC.get_open_orders()
+                if not getOpenOrder['result']:
+                    print('EXC: SEM ORDENS ABERTAS')
+                else:
+                    nOpenOrder = len(getOpenOrder['result'])
+                    c = 0
+                    while c < nOpenOrder:
+                        OrderID = getOpenOrder['result'][c]['OrderID']
+                        cancelaOrder = key_secretEXC.cancel(OrderID)
+                        c += 1
+
+                time.sleep(0.5)
+                ##########################################################
+                # BLEU: Verifica ordens abertar
+                getOpenOrder = key_secretBLEU.get_open_orders()
+                if not getOpenOrder['result']:
+                    print('BLEU: SEM ORDENS ABERTAS')
+                else:
+                    nOpenOrder = len(getOpenOrder['result'])
+                    c = 0
+                    while c < nOpenOrder:
+                        OrderID = getOpenOrder['result'][c]['OrderID']
+                        cancelaOrder = key_secretEXC.cancel(OrderID)
+                        c += 1
+
+                time.sleep(0.5)
+                ##########################################################
+
+            elif funCancelaOrdens == 0:
+                print(f'>> CANCELA ORDENS: Função desativada!')
+
+            else:
+                print(f'Por favor, configure a função: CANCELA ORDENS\nOpções:\n1 = Ativado\n2 = Desativado')
+
+            ##########################################################
 
 ####################################################################################
 # COMPRAR na BLEU, VENDER na EXC 1
@@ -209,36 +249,154 @@ while True:
                         print('\nATENÇÃO >> SALDO INSUFICIENTE << \n')
 
                         ############################## EQUILIBRA SALDO ###############################
-
-                        print('---')
-                        print('\n>>> EQUILIBRANDO SALDO <<<')
-
-                        # Aguarda 2 segundos
-                        time.sleep(2)
-
-                        saldoBTC_BLEU = key_secretBLEU.get_balance('BTC')
-                        saldoBTC_BLEU = float(saldoBTC_BLEU['result'][0]['Balance'])
-                        print(f'Saldo na BLEU: {saldoBTC_BLEU:.8f} BTC')
-
-                        saldoBTC_EXC = key_secretEXC.get_balance('BTC')
-                        saldoBTC_EXC = float(saldoBTC_EXC['result'][0]['Balance'])
-                        print(f'Saldo na EXC: {saldoBTC_EXC:.8f} BTC')
-
-                        if saldoBTC_BLEU > saldoBTC_EXC:
-                            print('\n>> ATENÇÃO<< Transferindo da BLEU para EXC\n')
+                        if funAutoBalance == 1:
+                            print('---')
+                            print('\n>>> EQUILIBRANDO SALDO <<<')
 
                             # Aguarda 2 segundos
                             time.sleep(2)
 
-                            ############ TRANSFERÊNCIA EQUILIBRA SALDO ##########
-                            equilibraSaldo = (saldoBTC_EXC + saldoBTC_BLEU) / 2
-                            equilibraSaldo = str(equilibraSaldo)
-                            print(f'Transferindo... {equilibraSaldo} BTC')
+                            saldoBTC_BLEU = key_secretBLEU.get_balance('BTC')
+                            saldoBTC_BLEU = float(saldoBTC_BLEU['result'][0]['Balance'])
+                            print(f'Saldo na BLEU: {saldoBTC_BLEU:.8f} BTC')
 
+                            saldoBTC_EXC = key_secretEXC.get_balance('BTC')
+                            saldoBTC_EXC = float(saldoBTC_EXC['result'][0]['Balance'])
+                            print(f'Saldo na EXC: {saldoBTC_EXC:.8f} BTC')
+
+                            if saldoBTC_BLEU > saldoBTC_EXC:
+                                print('\n>> ATENÇÃO<< Transferindo da BLEU para EXC\n')
+
+                                # Aguarda 2 segundos
+                                time.sleep(2)
+
+                                ############ TRANSFERÊNCIA EQUILIBRA SALDO ##########
+                                equilibraSaldo = (saldoBTC_EXC + saldoBTC_BLEU) / 2
+                                equilibraSaldo = str(equilibraSaldo)
+                                print(f'Transferindo... {equilibraSaldo} BTC')
+
+                                urlDirecttransferBLEU = 'https://bleutrade.com/api/v3/private/directtransfer?apikey=' + keyBLEU + '&nonce=' + str(
+                                    int(
+                                        time.time())) + '&asset=BTC&quantity=' + equilibraSaldo + '&exchangeto=2&' + 'accountto=' + emailEXC
+
+                                # sign
+                                sign = hmac.new(secretBLEU.encode(), urlDirecttransferBLEU.encode(),
+                                                hashlib.sha512).hexdigest()
+                                # Adding sign to header
+                                headers = {'apisign': sign}
+                                # Make request
+                                response = requests.get(url=urlDirecttransferBLEU, headers=headers)
+                                print(response.json())
+
+                                # Mostra saldo atualizado após transferência de equilíbrio
+                                print(f'Saldo atualizado na EXC: {saldoBTC_EXC:.8f} BTC')
+                                print(f'Saldo atualizado na BLEU: {saldoBTC_BLEU:.8f} BTC')
+
+                                ############ TRANSFERÊNCIA EQUILIBRA SALDO ##########
+
+                            elif saldoBTC_BLEU < saldoBTC_EXC:
+                                print('\n>> ATENÇÃO << Transferindo da EXC para BLEU\n')
+
+                                # Aguarda 2 segundos
+                                time.sleep(2)
+
+                                ############ TRANSFERÊNCIA EQUILIBRA SALDO ##########
+
+                                equilibraSaldo = (saldoBTC_BLEU + saldoBTC_EXC) / 2
+                                equilibraSaldo = str(equilibraSaldo)
+                                print(f'Transferindo... {equilibraSaldo} BTC')
+
+                                urlDirecttransferEXC = 'https://trade.exccripto.com/api/v3/private/directtransfer?apikey=' + keyEXC + '&nonce=' + str(
+                                    int(
+                                        time.time())) + '&asset=BTC&quantity=' + equilibraSaldo + '&exchangeto=1&' + 'accountto=' + emailBLEU
+
+                                # sign
+                                sign = hmac.new(secretEXC.encode(), urlDirecttransferEXC.encode(),
+                                                hashlib.sha512).hexdigest()
+                                # Adding sign to header
+                                headers = {'apisign': sign}
+                                # Make request
+                                response = requests.get(url=urlDirecttransferEXC, headers=headers)
+                                print(response.json())
+
+                                # Mostra saldo atualizado após transferência de equilíbrio
+                                print(f'Saldo atualizado na EXC: {saldoBTC_EXC:.8f} BTC')
+                                print(f'Saldo atualizado na BLEU: {saldoBTC_BLEU:.8f} BTC')
+
+                                ############ TRANSFERÊNCIA EQUILIBRA SALDO ##########
+
+                            else:
+                                print('>> SEM TRANSFERÊNCIA << Saldos iguais, ')
+
+                            print('---')
+
+                        elif funAutoBalance == 0:
+                            print(f'>> AUTO BALANCE: Função desativada!')
+
+                        else:
+                            print(f'Por favor, configure a função: AUTO BALANCE\nOpções:\n1 = Ativado\n2 = Desativado')
+
+                        ############################## EQUILIBRA SALDO ###############################
+
+                        time.sleep(1)
+
+                        ############################## MINIMA ########################################
+                        if funCompraMinima == 1:
+                            ################################################################
+                            # COMPRA QUANTIDADE MÍNIMA                                     #
+                            # Faz COMPRA MÍNIMA na BLEU: MOEDA_MERCADO, PREÇO, QUANTIDADE  #
+                            ################################################################
+                            print(' >>> FAZENDO COMPRA MÍNIMA <<<\n')
+
+                            # calcula fee
+                            pagafee = (feeBLEU / 100) * minimaCompra_ETH_BTC
+                            print(f'Fee: {pagafee:.8f}')
+
+                            faz_compra = key_secretBLEU.buy_limit('ETH_BTC', vendaAtivoBLEU, minimaCompra_ETH_BTC)
+                            print(f'(1)Comprando... {minimaCompra_ETH_BTC:.8f} ETH')
+                            print(faz_compra)
+
+                            # Mensagem Telegram
+                            config.mensagem_telegram('>>> FAZENDO COMPRA MÍNIMA <<<')
+                            config.mensagem_telegram(
+                                f'>> VALORES: \nCompra: {vendaAtivoBLEU:.8f} \nVenda: {compraAtivoEXC:.8f} \nQuantidade: {minimaCompra_ETH_BTC:.8f}\n')
+                            config.mensagem_telegram(
+                                f'>> AÇÃO:\nComprando na BLEU... {minimaCompra_ETH_BTC:.8f}\n{faz_compra}\n')
+
+                            log = open('logs/ETH_BTC.txt', 'a')
+                            log.write(f'>>> FAZENDO COMPRA MÍNIMA <<<\n')
+                            log.write(
+                                f'>> VALORES: \nCompra: {vendaAtivoBLEU:.8f} \nVenda: {compraAtivoEXC:.8f} \nQuantidade: {minimaCompra_ETH_BTC:.8f}\n')
+                            log.write('-' * 10)
+                            log.write(f'>> AÇÃO:\nComprando na BLEU... {minimaCompra_ETH_BTC:.8f}\n{faz_compra}\n')
+                            log.close()
+
+                            # Recebe resposta da ação COMPRA
+                            respostaFazCompra = faz_compra['result']
+                            if respostaFazCompra == listaErroMinima[0]:
+                                print('>> ERRO << Reiniciando verificação!')
+                                break
+                            elif respostaFazCompra == listaErroMinima[1]:
+                                print('>> ERRO << Reiniciando verificação!')
+                                break
+                            elif respostaFazCompra == listaErroMinima[2]:
+                                print('>> ERRO << Reiniciando verificação!')
+                                break
+                            elif respostaFazCompra == listaErroMinima[3]:
+                                print('>> ERRO << Reiniciando verificação!')
+                                break
+                            else:
+                                print('Sem erros na compra, continua...\n')
+
+                            ######################################
+                            # TRANSFERÊNCIA QUANTIDADE MINIMA    #
+                            # Faz TRANSFERÊNCIA da BLEU para EXC #
+                            ######################################
+                            print(f'\nTransferindo... {minimaCompra_ETH_BTC:.8f} ETH')
+                            mCOMPRA = str(minimaCompra_ETH_BTC)
                             urlDirecttransferBLEU = 'https://bleutrade.com/api/v3/private/directtransfer?apikey=' + keyBLEU + '&nonce=' + str(
                                 int(
-                                    time.time())) + '&asset=BTC&quantity=' + equilibraSaldo + '&exchangeto=2&' + 'accountto=' + emailEXC
-
+                                    time.time())) + '&asset=ETH&quantity=' + mCOMPRA + '&exchangeto=2&' + 'accountto=' + emailEXC
                             # sign
                             sign = hmac.new(secretBLEU.encode(), urlDirecttransferBLEU.encode(),
                                             hashlib.sha512).hexdigest()
@@ -248,139 +406,44 @@ while True:
                             response = requests.get(url=urlDirecttransferBLEU, headers=headers)
                             print(response.json())
 
-                            # Mostra saldo atualizado após transferência de equilíbrio
-                            print(f'Saldo atualizado na EXC: {saldoBTC_EXC:.8f} BTC')
-                            print(f'Saldo atualizado na BLEU: {saldoBTC_BLEU:.8f} BTC')
-
-                            ############ TRANSFERÊNCIA EQUILIBRA SALDO ##########
-
-                        elif saldoBTC_BLEU < saldoBTC_EXC:
-                            print('\n>> ATENÇÃO << Transferindo da EXC para BLEU\n')
-
-                            # Aguarda 2 segundos
+                            # Aguarda 2 segundos antes de executar a venda
                             time.sleep(2)
 
-                            ############ TRANSFERÊNCIA EQUILIBRA SALDO ##########
+                            # Mensagem Telegram
+                            config.mensagem_telegram('>> TRANSFERÊNCIA: BLEU para EXC')
+                            config.mensagem_telegram(
+                                f'>> AÇÃO:\nQuantidade: {minimaCompra_ETH_BTC:.8f}\n{response.json()}\n')
 
-                            equilibraSaldo = (saldoBTC_BLEU + saldoBTC_EXC) / 2
-                            equilibraSaldo = str(equilibraSaldo)
-                            print(f'Transferindo... {equilibraSaldo} BTC')
+                            log = open('logs/ETH_BTC.txt', 'a')
+                            log.write(f'>> TRANSFERÊNCIA: BLEU para EXC\n')
+                            log.write('-' * 10)
+                            log.write(f'\n>> AÇÃO:\nQuantidade: {minimaCompra_ETH_BTC:.8f}\n{response.json()}\n')
+                            log.close()
 
-                            urlDirecttransferEXC = 'https://trade.exccripto.com/api/v3/private/directtransfer?apikey=' + keyEXC + '&nonce=' + str(
-                                int(
-                                    time.time())) + '&asset=BTC&quantity=' + equilibraSaldo + '&exchangeto=1&' + 'accountto=' + emailBLEU
+                            ######################################################
+                            # VENDA QUANTIDADE MÍNIMA                            #
+                            # Faz VENDA na EXC: MOEDA_MERCADO, preço, quantidade #
+                            ######################################################
+                            print(f'\nVENDENDO... {minimaCompra_ETH_BTC:.8f} ETH')
+                            faz_vendaEXC = key_secretEXC.sell_limit('ETH_BTC', compraAtivoEXC, minimaCompra_ETH_BTC)
+                            print(faz_vendaEXC)
 
-                            # sign
-                            sign = hmac.new(secretEXC.encode(), urlDirecttransferEXC.encode(),
-                                            hashlib.sha512).hexdigest()
-                            # Adding sign to header
-                            headers = {'apisign': sign}
-                            # Make request
-                            response = requests.get(url=urlDirecttransferEXC, headers=headers)
-                            print(response.json())
+                            # Mensagem Telegram
+                            config.mensagem_telegram('>>> VENDA QUANTIDADE MÍNIMA <<<')
+                            config.mensagem_telegram(
+                                f'>> AÇÃO:\nQuantidade: {minimaCompra_ETH_BTC:.8f}\n{faz_vendaEXC}\n')
 
-                            # Mostra saldo atualizado após transferência de equilíbrio
-                            print(f'Saldo atualizado na EXC: {saldoBTC_EXC:.8f} BTC')
-                            print(f'Saldo atualizado na BLEU: {saldoBTC_BLEU:.8f} BTC')
+                            log = open('logs/ETH_BTC.txt', 'a')
+                            log.write(f'>>> VENDA QUANTIDADE MÍNIMA <<<\n')
+                            log.write('-' * 10)
+                            log.write(f'\n>> AÇÃO:\nQuantidade: {minimaCompra_ETH_BTC:.8f}\n{faz_vendaEXC}\n')
+                            log.close()
 
-                            ############ TRANSFERÊNCIA EQUILIBRA SALDO ##########
+                        elif funCompraMinima == 0:
+                            print(f'>> COMPRA MÍNIMA: Função desativada!')
 
                         else:
-                            print('>> SEM TRANSFERÊNCIA << Saldos iguais, ')
-
-                        print('---')
-                        ############################## EQUILIBRA SALDO ###############################
-
-                        ############################## MINIMA ########################################
-
-                        ################################################################
-                        # COMPRA QUANTIDADE MÍNIMA                                     #
-                        # Faz COMPRA MÍNIMA na BLEU: MOEDA_MERCADO, PREÇO, QUANTIDADE  #
-                        ################################################################
-                        print(' >>> FAZENDO COMPRA MÍNIMA <<<\n')
-
-                        # calcula fee
-                        pagafee = (feeBLEU / 100) * minimaCompra_ETH_BTC
-                        print(f'Fee: {pagafee:.8f}')
-
-                        faz_compra = key_secretBLEU.buy_limit('ETH_BTC', vendaAtivoBLEU, minimaCompra_ETH_BTC)
-                        print(f'Comprando... {minimaCompra_ETH_BTC:.8f} ETH')
-                        print(faz_compra)
-
-                        # Mensagem Telegram
-                        config.mensagem_telegram('>>> FAZENDO COMPRA MÍNIMA <<<')
-                        config.mensagem_telegram(f'>> VALORES: \nCompra: {vendaAtivoBLEU:.8f} \nVenda: {compraAtivoEXC:.8f} \nQuantidade: {minimaCompra_ETH_BTC:.8f}\n')
-                        config.mensagem_telegram(f'>> AÇÃO:\nComprando na BLEU... {minimaCompra_ETH_BTC:.8f}\n{faz_compra}\n')
-
-                        log = open('logs/ETH_BTC.txt', 'a')
-                        log.write(f'>>> FAZENDO COMPRA MÍNIMA <<<\n')
-                        log.write(f'>> VALORES: \nCompra: {vendaAtivoBLEU:.8f} \nVenda: {compraAtivoEXC:.8f} \nQuantidade: {minimaCompra_ETH_BTC:.8f}\n')
-                        log.write('-' * 10)
-                        log.write(f'>> AÇÃO:\nComprando na BLEU... {minimaCompra_ETH_BTC:.8f}\n{faz_compra}\n')
-                        log.close()
-
-                        # Recebe resposta da ação COMPRA
-                        respostaFazCompra = faz_compra['result']
-                        if respostaFazCompra == listaErroMinima[0]:
-                            print('>> ERRO << Reiniciando verificação!')
-                            break
-                        elif respostaFazCompra == listaErroMinima[1]:
-                            print('>> ERRO << Reiniciando verificação!')
-                            break
-                        elif respostaFazCompra == listaErroMinima[2]:
-                            print('>> ERRO << Reiniciando verificação!')
-                            break
-                        elif respostaFazCompra == listaErroMinima[3]:
-                            print('>> ERRO << Reiniciando verificação!')
-                            break
-                        else:
-                            print('Sem erros na compra, continua...\n')
-
-                        ######################################
-                        # TRANSFERÊNCIA QUANTIDADE MINIMA    #
-                        # Faz TRANSFERÊNCIA da BLEU para EXC #
-                        ######################################
-                        print(f'\nTransferindo... {minimaCompra_ETH_BTC:.8f} ETH')
-                        mCOMPRA = str(minimaCompra_ETH_BTC)
-                        urlDirecttransferBLEU = 'https://bleutrade.com/api/v3/private/directtransfer?apikey=' + keyBLEU + '&nonce=' + str(int(time.time())) + '&asset=ETH&quantity=' + mCOMPRA + '&exchangeto=2&' + 'accountto=' + emailEXC
-                        # sign
-                        sign = hmac.new(secretBLEU.encode(), urlDirecttransferBLEU.encode(), hashlib.sha512).hexdigest()
-                        # Adding sign to header
-                        headers = {'apisign': sign}
-                        # Make request
-                        response = requests.get(url=urlDirecttransferBLEU, headers=headers)
-                        print(response.json())
-
-                        # Aguarda 2 segundos antes de executar a venda
-                        time.sleep(2)
-
-                        # Mensagem Telegram
-                        config.mensagem_telegram('>> TRANSFERÊNCIA: BLEU para EXC')
-                        config.mensagem_telegram(f'>> AÇÃO:\nQuantidade: {minimaCompra_ETH_BTC:.8f}\n{response.json()}\n')
-
-                        log = open('logs/ETH_BTC.txt', 'a')
-                        log.write(f'>> TRANSFERÊNCIA: BLEU para EXC\n')
-                        log.write('-' * 10)
-                        log.write(f'\n>> AÇÃO:\nQuantidade: {minimaCompra_ETH_BTC:.8f}\n{response.json()}\n')
-                        log.close()
-
-                        ######################################################
-                        # VENDA QUANTIDADE MÍNIMA                            #
-                        # Faz VENDA na EXC: MOEDA_MERCADO, preço, quantidade #
-                        ######################################################
-                        print(f'\nVENDENDO... {minimaCompra_ETH_BTC:.8f} ETH')
-                        faz_vendaEXC = key_secretEXC.sell_limit('ETH_BTC', compraAtivoEXC, minimaCompra_ETH_BTC)
-                        print(faz_vendaEXC)
-
-                        # Mensagem Telegram
-                        config.mensagem_telegram('>>> VENDA QUANTIDADE MÍNIMA <<<')
-                        config.mensagem_telegram(f'>> AÇÃO:\nQuantidade: {minimaCompra_ETH_BTC:.8f}\n{faz_vendaEXC}\n')
-
-                        log = open('logs/ETH_BTC.txt', 'a')
-                        log.write(f'>>> VENDA QUANTIDADE MÍNIMA <<<\n')
-                        log.write('-' * 10)
-                        log.write(f'\n>> AÇÃO:\nQuantidade: {minimaCompra_ETH_BTC:.8f}\n{faz_vendaEXC}\n')
-                        log.close()
+                            print(f'Por favor, configure a função: COMPRA MÍNIMA\nOpções:\n1 = Ativado\n2 = Desativado')
 
                         ############################## MINIMA ########################################
 
@@ -495,36 +558,156 @@ while True:
                         print('\nATENÇÃO >> SALDO INSUFICIENTE << \n')
 
                         ############################## EQUILIBRA SALDO ###############################
-
-                        print('---')
-                        print('\n>>> EQUILIBRANDO SALDO <<<')
-
-                        # Aguarda 2 segundos
-                        time.sleep(2)
-
-                        saldoBTC_BLEU = key_secretBLEU.get_balance('BTC')
-                        saldoBTC_BLEU = float(saldoBTC_BLEU['result'][0]['Balance'])
-                        print(f'Saldo na BLEU: {saldoBTC_BLEU:.8f} BTC')
-
-                        saldoBTC_EXC = key_secretEXC.get_balance('BTC')
-                        saldoBTC_EXC = float(saldoBTC_EXC['result'][0]['Balance'])
-                        print(f'Saldo na EXC: {saldoBTC_EXC:.8f} BTC')
-
-                        if saldoBTC_BLEU > saldoBTC_EXC:
-                            print('\n>> ATENÇÃO<< Transferindo da BLEU para EXC\n')
+                        if funAutoBalance == 1:
+                            print('---')
+                            print('\n>>> EQUILIBRANDO SALDO <<<')
 
                             # Aguarda 2 segundos
                             time.sleep(2)
 
-                            ############ TRANSFERÊNCIA EQUILIBRA SALDO ##########
-                            equilibraSaldo = (saldoBTC_EXC + saldoBTC_BLEU) / 2
-                            equilibraSaldo = str(equilibraSaldo)
-                            print(f'Transferindo... {equilibraSaldo} BTC')
+                            saldoBTC_BLEU = key_secretBLEU.get_balance('BTC')
+                            saldoBTC_BLEU = float(saldoBTC_BLEU['result'][0]['Balance'])
+                            print(f'Saldo na BLEU: {saldoBTC_BLEU:.8f} BTC')
 
+                            saldoBTC_EXC = key_secretEXC.get_balance('BTC')
+                            saldoBTC_EXC = float(saldoBTC_EXC['result'][0]['Balance'])
+                            print(f'Saldo na EXC: {saldoBTC_EXC:.8f} BTC')
+
+                            if saldoBTC_BLEU > saldoBTC_EXC:
+                                print('\n>> ATENÇÃO<< Transferindo da BLEU para EXC\n')
+
+                                # Aguarda 2 segundos
+                                time.sleep(2)
+
+                                ############ TRANSFERÊNCIA EQUILIBRA SALDO ##########
+                                equilibraSaldo = (saldoBTC_EXC + saldoBTC_BLEU) / 2
+                                equilibraSaldo = str(equilibraSaldo)
+                                print(f'Transferindo... {equilibraSaldo} BTC')
+
+                                urlDirecttransferBLEU = 'https://bleutrade.com/api/v3/private/directtransfer?apikey=' + keyBLEU + '&nonce=' + str(
+                                    int(
+                                        time.time())) + '&asset=BTC&quantity=' + equilibraSaldo + '&exchangeto=2&' + 'accountto=' + emailEXC
+
+                                # sign
+                                sign = hmac.new(secretBLEU.encode(), urlDirecttransferBLEU.encode(),
+                                                hashlib.sha512).hexdigest()
+                                # Adding sign to header
+                                headers = {'apisign': sign}
+                                # Make request
+                                response = requests.get(url=urlDirecttransferBLEU, headers=headers)
+                                print(response.json())
+
+                                # Mostra saldo atualizado após transferência de equilíbrio
+                                print(f'Saldo atualizado na EXC: {saldoBTC_EXC:.8f} BTC')
+                                print(f'Saldo atualizado na BLEU: {saldoBTC_BLEU:.8f} BTC')
+
+                                ############ TRANSFERÊNCIA EQUILIBRA SALDO ##########
+
+                            elif saldoBTC_BLEU < saldoBTC_EXC:
+                                print('\n>> ATENÇÃO << Transferindo da EXC para BLEU\n')
+
+                                # Aguarda 2 segundos
+                                time.sleep(2)
+
+                                ############ TRANSFERÊNCIA EQUILIBRA SALDO ##########
+
+                                equilibraSaldo = (saldoBTC_BLEU + saldoBTC_EXC) / 2
+                                equilibraSaldo = str(equilibraSaldo)
+                                print(f'Transferindo... {equilibraSaldo} BTC')
+
+                                urlDirecttransferEXC = 'https://trade.exccripto.com/api/v3/private/directtransfer?apikey=' + keyEXC + '&nonce=' + str(
+                                    int(
+                                        time.time())) + '&asset=BTC&quantity=' + equilibraSaldo + '&exchangeto=1&' + 'accountto=' + emailBLEU
+
+                                # sign
+                                sign = hmac.new(secretEXC.encode(), urlDirecttransferEXC.encode(),
+                                                hashlib.sha512).hexdigest()
+                                # Adding sign to header
+                                headers = {'apisign': sign}
+                                # Make request
+                                response = requests.get(url=urlDirecttransferEXC, headers=headers)
+                                print(response.json())
+
+                                # Mostra saldo atualizado após transferência de equilíbrio
+                                print(f'Saldo atualizado na EXC: {saldoBTC_EXC:.8f} BTC')
+                                print(f'Saldo atualizado na BLEU: {saldoBTC_BLEU:.8f} BTC')
+
+                                ############ TRANSFERÊNCIA EQUILIBRA SALDO ##########
+
+                            else:
+                                print('>> SEM TRANSFERÊNCIA << Saldos iguais, ')
+
+                            print('---')
+                            ############################## EQUILIBRA SALDO ###############################
+
+                        elif funAutoBalance == 0:
+                            print(f'>> AUTO BALANCE: Função desativada!')
+
+                        else:
+                            print(f'Por favor, configure a função: AUTO BALANCE\nOpções:\n1 = Ativado\n2 = Desativado')
+
+                        ############################## EQUILIBRA SALDO ###############################
+
+                        time.sleep(1)
+
+                        ############################## MINIMA ########################################
+                        if funCompraMinima == 1:
+                            ################################################################
+                            # COMPRA QUANTIDADE MÍNIMA                                     #
+                            # Faz COMPRA MÍNIMA na BLEU: MOEDA_MERCADO, PREÇO, QUANTIDADE  #
+                            ################################################################
+                            print(' >>> FAZENDO COMPRA MÍNIMA <<<\n')
+                            time.sleep(1)
+
+                            # calcula fee
+                            pagafee = (feeBLEU / 100) * minimaCompra_ETH_BTC
+                            print(f'Fee: {pagafee:.8f}')
+
+                            faz_compra = key_secretBLEU.buy_limit('ETH_BTC', vendaAtivoBLEU, minimaCompra_ETH_BTC)
+                            print(f'(2)Comprando... {minimaCompra_ETH_BTC:.8f} ETH')
+                            print(faz_compra)
+
+                            # Mensagem Telegram
+                            config.mensagem_telegram('>>> FAZENDO COMPRA MÍNIMA <<<')
+                            config.mensagem_telegram(
+                                f'>> VALORES: \nCompra: {vendaAtivoBLEU:.8f} \nVenda: {compraAtivoEXC:.8f} \nQuantidade: {minimaCompra_ETH_BTC:.8f}\n')
+                            config.mensagem_telegram(
+                                f'>> AÇÃO:\nComprando na BLEU... {minimaCompra_ETH_BTC:.8f}\n{faz_compra}\n')
+
+                            log = open('logs/ETH_BTC.txt', 'a')
+                            log.write(f'>>> FAZENDO COMPRA MÍNIMA <<< \n')
+                            log.write(
+                                f'>> VALORES: \nCompra: {vendaAtivoBLEU:.8f} \nVenda: {compraAtivoEXC:.8f} \nQuantidade: {minimaCompra_ETH_BTC:.8f}\n')
+                            log.write('-' * 10)
+                            log.write('>> AÇÃO:\nComprando na BLEU... {minimaCompra_ETH_BTC:.8f}\n{faz_compra}\n')
+                            log.close()
+
+                            # Recebe resposta da ação COMPRA
+                            respostaFazCompra = faz_compra['result']
+                            if respostaFazCompra == listaErroMinima[0]:
+                                print('>> ERRO << Reiniciando verificação!')
+                                break
+                            elif respostaFazCompra == listaErroMinima[1]:
+                                print('>> ERRO << Reiniciando verificação!')
+                                break
+                            elif respostaFazCompra == listaErroMinima[2]:
+                                print('>> ERRO << Reiniciando verificação!')
+                                break
+                            elif respostaFazCompra == listaErroMinima[3]:
+                                print('>> ERRO << Reiniciando verificação!')
+                                break
+                            else:
+                                print('Sem erros na compra, continua...')
+
+                            ######################################
+                            # TRANSFERÊNCIA QUANTIDADE MINIMA    #
+                            # Faz TRANSFERÊNCIA da BLEU para EXC #
+                            ######################################
+                            print(f'Transferindo... {minimaCompra_ETH_BTC:.8f} ETH')
+                            mCOMPRA = str(minimaCompra_ETH_BTC)
                             urlDirecttransferBLEU = 'https://bleutrade.com/api/v3/private/directtransfer?apikey=' + keyBLEU + '&nonce=' + str(
                                 int(
-                                    time.time())) + '&asset=BTC&quantity=' + equilibraSaldo + '&exchangeto=2&' + 'accountto=' + emailEXC
-
+                                    time.time())) + '&asset=ETH&quantity=' + mCOMPRA + '&exchangeto=2&' + 'accountto=' + emailEXC
                             # sign
                             sign = hmac.new(secretBLEU.encode(), urlDirecttransferBLEU.encode(),
                                             hashlib.sha512).hexdigest()
@@ -534,141 +717,44 @@ while True:
                             response = requests.get(url=urlDirecttransferBLEU, headers=headers)
                             print(response.json())
 
-                            # Mostra saldo atualizado após transferência de equilíbrio
-                            print(f'Saldo atualizado na EXC: {saldoBTC_EXC:.8f} BTC')
-                            print(f'Saldo atualizado na BLEU: {saldoBTC_BLEU:.8f} BTC')
-
-                            ############ TRANSFERÊNCIA EQUILIBRA SALDO ##########
-
-                        elif saldoBTC_BLEU < saldoBTC_EXC:
-                            print('\n>> ATENÇÃO << Transferindo da EXC para BLEU\n')
-
-                            # Aguarda 2 segundos
+                            # Aguarda 2 segundos antes de executar a venda
                             time.sleep(2)
 
-                            ############ TRANSFERÊNCIA EQUILIBRA SALDO ##########
+                            # Mensagem Telegram
+                            config.mensagem_telegram('>> TRANSFERÊNCIA: BLEU para EXC')
+                            config.mensagem_telegram(
+                                f'>> AÇÃO:\nQuantidade: {minimaCompra_ETH_BTC:.8f}\n{response.json()}\n')
 
-                            equilibraSaldo = (saldoBTC_BLEU + saldoBTC_EXC) / 2
-                            equilibraSaldo = str(equilibraSaldo)
-                            print(f'Transferindo... {equilibraSaldo} BTC')
+                            log = open('logs/ETH_BTC.txt', 'a')
+                            log.write(f'>> TRANSFERÊNCIA: BLEU para EXC\n')
+                            log.write('-' * 10)
+                            log.write(f'\n>> AÇÃO:\nQuantidade: {minimaCompra_ETH_BTC:.8f}\n{response.json()}\n')
+                            log.close()
 
-                            urlDirecttransferEXC = 'https://trade.exccripto.com/api/v3/private/directtransfer?apikey=' + keyEXC + '&nonce=' + str(
-                                int(
-                                    time.time())) + '&asset=BTC&quantity=' + equilibraSaldo + '&exchangeto=1&' + 'accountto=' + emailBLEU
+                            ######################################################
+                            # VENDA QUANTIDADE MÍNIMA                            #
+                            # Faz VENDA na EXC: MOEDA_MERCADO, preço, quantidade #
+                            ######################################################
+                            print(f'Vendendo... {minimaCompra_ETH_BTC:.8f} ETH')
+                            faz_vendaEXC = key_secretEXC.sell_limit('ETH_BTC', compraAtivoEXC, minimaCompra_ETH_BTC)
+                            print(faz_vendaEXC)
 
-                            # sign
-                            sign = hmac.new(secretEXC.encode(), urlDirecttransferEXC.encode(),
-                                            hashlib.sha512).hexdigest()
-                            # Adding sign to header
-                            headers = {'apisign': sign}
-                            # Make request
-                            response = requests.get(url=urlDirecttransferEXC, headers=headers)
-                            print(response.json())
+                            # Mensagem Telegram
+                            config.mensagem_telegram('>>> VENDA QUANTIDADE MÍNIMA <<<')
+                            config.mensagem_telegram(
+                                f'>> AÇÃO:\nQuantidade: {minimaCompra_ETH_BTC:.8f}\n{faz_vendaEXC}\n')
 
-                            # Mostra saldo atualizado após transferência de equilíbrio
-                            print(f'Saldo atualizado na EXC: {saldoBTC_EXC:.8f} BTC')
-                            print(f'Saldo atualizado na BLEU: {saldoBTC_BLEU:.8f} BTC')
+                            log = open('logs/ETH_BTC.txt', 'a')
+                            log.write(f'>>> VENDA QUANTIDADE MÍNIMA <<<\n')
+                            log.write('-' * 10)
+                            log.write(f'\n>> AÇÃO:\nQuantidade: {minimaCompra_ETH_BTC:.8f}\n{faz_vendaEXC}\n')
+                            log.close()
 
-                            ############ TRANSFERÊNCIA EQUILIBRA SALDO ##########
+                        elif funCompraMinima == 0:
+                            print(f'>> COMPRA MÍNIMA: Função desativada!')
 
                         else:
-                            print('>> SEM TRANSFERÊNCIA << Saldos iguais, ')
-
-                        print('---')
-                        ############################## EQUILIBRA SALDO ###############################
-
-                        ############################## MINIMA ########################################
-
-                        ################################################################
-                        # COMPRA QUANTIDADE MÍNIMA                                     #
-                        # Faz COMPRA MÍNIMA na BLEU: MOEDA_MERCADO, PREÇO, QUANTIDADE  #
-                        ################################################################
-                        print(' >>> FAZENDO COMPRA MÍNIMA <<<\n')
-
-                        # calcula fee
-                        pagafee = (feeBLEU / 100) * minimaCompra_ETH_BTC
-                        print(f'Fee: {pagafee:.8f}')
-
-                        faz_compra = key_secretBLEU.buy_limit('ETH_BTC', vendaAtivoBLEU, minimaCompra_ETH_BTC)
-                        print(f'Comprando... {minimaCompra_ETH_BTC:.8f} ETH')
-                        print(faz_compra)
-
-                        # Mensagem Telegram
-                        config.mensagem_telegram('>>> FAZENDO COMPRA MÍNIMA <<<')
-                        config.mensagem_telegram(f'>> VALORES: \nCompra: {vendaAtivoBLEU:.8f} \nVenda: {compraAtivoEXC:.8f} \nQuantidade: {minimaCompra_ETH_BTC:.8f}\n')
-                        config.mensagem_telegram(f'>> AÇÃO:\nComprando na BLEU... {minimaCompra_ETH_BTC:.8f}\n{faz_compra}\n')
-
-                        log = open('logs/ETH_BTC.txt', 'a')
-                        log.write(f'>>> FAZENDO COMPRA MÍNIMA <<< \n')
-                        log.write(f'>> VALORES: \nCompra: {vendaAtivoBLEU:.8f} \nVenda: {compraAtivoEXC:.8f} \nQuantidade: {minimaCompra_ETH_BTC:.8f}\n')
-                        log.write('-' * 10)
-                        log.write('>> AÇÃO:\nComprando na BLEU... {minimaCompra_ETH_BTC:.8f}\n{faz_compra}\n')
-                        log.close()
-
-                        # Recebe resposta da ação COMPRA
-                        respostaFazCompra = faz_compra['result']
-                        if respostaFazCompra == listaErroMinima[0]:
-                            print('>> ERRO << Reiniciando verificação!')
-                            break
-                        elif respostaFazCompra == listaErroMinima[1]:
-                            print('>> ERRO << Reiniciando verificação!')
-                            break
-                        elif respostaFazCompra == listaErroMinima[2]:
-                            print('>> ERRO << Reiniciando verificação!')
-                            break
-                        elif respostaFazCompra == listaErroMinima[3]:
-                            print('>> ERRO << Reiniciando verificação!')
-                            break
-                        else:
-                            print('Sem erros na compra, continua...')
-
-                        ######################################
-                        # TRANSFERÊNCIA QUANTIDADE MINIMA    #
-                        # Faz TRANSFERÊNCIA da BLEU para EXC #
-                        ######################################
-                        print(f'Transferindo... {minimaCompra_ETH_BTC:.8f} ETH')
-                        mCOMPRA = str(minimaCompra_ETH_BTC)
-                        urlDirecttransferBLEU = 'https://bleutrade.com/api/v3/private/directtransfer?apikey=' + keyBLEU + '&nonce=' + str(
-                            int(
-                                time.time())) + '&asset=ETH&quantity=' + mCOMPRA + '&exchangeto=2&' + 'accountto=' + emailEXC
-                        # sign
-                        sign = hmac.new(secretBLEU.encode(), urlDirecttransferBLEU.encode(), hashlib.sha512).hexdigest()
-                        # Adding sign to header
-                        headers = {'apisign': sign}
-                        # Make request
-                        response = requests.get(url=urlDirecttransferBLEU, headers=headers)
-                        print(response.json())
-
-                        # Aguarda 2 segundos antes de executar a venda
-                        time.sleep(2)
-
-                        # Mensagem Telegram
-                        config.mensagem_telegram('>> TRANSFERÊNCIA: BLEU para EXC')
-                        config.mensagem_telegram(f'>> AÇÃO:\nQuantidade: {minimaCompra_ETH_BTC:.8f}\n{response.json()}\n')
-
-                        log = open('logs/ETH_BTC.txt', 'a')
-                        log.write(f'>> TRANSFERÊNCIA: BLEU para EXC\n')
-                        log.write('-' * 10)
-                        log.write(f'\n>> AÇÃO:\nQuantidade: {minimaCompra_ETH_BTC:.8f}\n{response.json()}\n')
-                        log.close()
-
-                        ######################################################
-                        # VENDA QUANTIDADE MÍNIMA                            #
-                        # Faz VENDA na EXC: MOEDA_MERCADO, preço, quantidade #
-                        ######################################################
-                        print(f'Vendendo... {minimaCompra_ETH_BTC:.8f} ETH')
-                        faz_vendaEXC = key_secretEXC.sell_limit('ETH_BTC', compraAtivoEXC, minimaCompra_ETH_BTC)
-                        print(faz_vendaEXC)
-
-                        # Mensagem Telegram
-                        config.mensagem_telegram('>>> VENDA QUANTIDADE MÍNIMA <<<')
-                        config.mensagem_telegram(f'>> AÇÃO:\nQuantidade: {minimaCompra_ETH_BTC:.8f}\n{faz_vendaEXC}\n')
-
-                        log = open('logs/ETH_BTC.txt', 'a')
-                        log.write(f'>>> VENDA QUANTIDADE MÍNIMA <<<\n')
-                        log.write('-' * 10)
-                        log.write(f'\n>> AÇÃO:\nQuantidade: {minimaCompra_ETH_BTC:.8f}\n{faz_vendaEXC}\n')
-                        log.close()
+                            print(f'Por favor, configure a função: COMPRA MÍNIMA\nOpções:\n1 = Ativado\n2 = Desativado')
 
                         ############################## MINIMA ########################################
 
@@ -816,64 +902,152 @@ while True:
                         print('\nATENÇÃO >> SALDO INSUFICIENTE << ')
 
                         ############################## EQUILIBRA SALDO ###############################
-
-                        print('---')
-                        print(' >>> EQUILIBRANDO SALDO <<<')
-
-                        # Aguarda 2 segundos
-                        time.sleep(2)
-
-                        saldoBTC_BLEU = key_secretBLEU.get_balance('BTC')
-                        saldoBTC_BLEU = float(saldoBTC_BLEU['result'][0]['Balance'])
-                        print(f'Saldo na BLEU: {saldoBTC_BLEU:.8f} BTC')
-
-                        saldoBTC_EXC = key_secretEXC.get_balance('BTC')
-                        saldoBTC_EXC = float(saldoBTC_EXC['result'][0]['Balance'])
-                        print(f'Saldo na EXC: {saldoBTC_EXC:.8f} BTC')
-
-                        if saldoBTC_BLEU > saldoBTC_EXC:
-                            print('\n>> ATENÇÃO << Transferindo de BLEU para EXC\n')
-
-                            ############ TRANSFERÊNCIA EQUILIBRA SALDO ##########
-
-                            equilibraSaldo = (saldoBTC_EXC + saldoBTC_BLEU) / 2
-                            equilibraSaldo = str(equilibraSaldo)
-                            print(f'Transferindo... {equilibraSaldo} BTC')
-
-                            urlDirecttransferBLEU = 'https://bleutrade.com/api/v3/private/directtransfer?apikey=' + keyBLEU + '&nonce=' + str(
-                                int(
-                                    time.time())) + '&asset=BTC&quantity=' + equilibraSaldo + '&exchangeto=2&' + 'accountto=' + emailEXC
-
-                            # sign
-                            sign = hmac.new(secretBLEU.encode(), urlDirecttransferBLEU.encode(),
-                                            hashlib.sha512).hexdigest()
-                            # Adding sign to header
-                            headers = {'apisign': sign}
-                            # Make request
-                            response = requests.get(url=urlDirecttransferBLEU, headers=headers)
-                            print(response.json())
-
-                            # Mostra saldo atualizado após transferência de equilíbrio
-                            print(f'Saldo atualizado na EXC: {saldoBTC_EXC:.8f} BTC')
-                            print(f'Saldo atualizado na BLEU: {saldoBTC_BLEU:.8f} BTC')
-
-                            ############ TRANSFERÊNCIA EQUILIBRA SALDO ##########
-
-                        elif saldoBTC_BLEU < saldoBTC_EXC:
-                            print('\n>> ATENÇÃO << Transferindo de EXC para BLEU\n')
+                        if funAutoBalance == 1:
+                            print('---')
+                            print(' >>> EQUILIBRANDO SALDO <<<')
 
                             # Aguarda 2 segundos
                             time.sleep(2)
 
-                            ############ TRANSFERÊNCIA EQUILIBRA SALDO ##########
+                            saldoBTC_BLEU = key_secretBLEU.get_balance('BTC')
+                            saldoBTC_BLEU = float(saldoBTC_BLEU['result'][0]['Balance'])
+                            print(f'Saldo na BLEU: {saldoBTC_BLEU:.8f} BTC')
 
-                            equilibraSaldo = (saldoBTC_BLEU + saldoBTC_EXC) / 2
-                            equilibraSaldo = str(equilibraSaldo)
-                            print(f'Transferindo: {equilibraSaldo} BTC')
+                            saldoBTC_EXC = key_secretEXC.get_balance('BTC')
+                            saldoBTC_EXC = float(saldoBTC_EXC['result'][0]['Balance'])
+                            print(f'Saldo na EXC: {saldoBTC_EXC:.8f} BTC')
 
+                            if saldoBTC_BLEU > saldoBTC_EXC:
+                                print('\n>> ATENÇÃO << Transferindo de BLEU para EXC\n')
+
+                                ############ TRANSFERÊNCIA EQUILIBRA SALDO ##########
+
+                                equilibraSaldo = (saldoBTC_EXC + saldoBTC_BLEU) / 2
+                                equilibraSaldo = str(equilibraSaldo)
+                                print(f'Transferindo... {equilibraSaldo} BTC')
+
+                                urlDirecttransferBLEU = 'https://bleutrade.com/api/v3/private/directtransfer?apikey=' + keyBLEU + '&nonce=' + str(
+                                    int(
+                                        time.time())) + '&asset=BTC&quantity=' + equilibraSaldo + '&exchangeto=2&' + 'accountto=' + emailEXC
+
+                                # sign
+                                sign = hmac.new(secretBLEU.encode(), urlDirecttransferBLEU.encode(),
+                                                hashlib.sha512).hexdigest()
+                                # Adding sign to header
+                                headers = {'apisign': sign}
+                                # Make request
+                                response = requests.get(url=urlDirecttransferBLEU, headers=headers)
+                                print(response.json())
+
+                                # Mostra saldo atualizado após transferência de equilíbrio
+                                print(f'Saldo atualizado na EXC: {saldoBTC_EXC:.8f} BTC')
+                                print(f'Saldo atualizado na BLEU: {saldoBTC_BLEU:.8f} BTC')
+
+                                ############ TRANSFERÊNCIA EQUILIBRA SALDO ##########
+
+                            elif saldoBTC_BLEU < saldoBTC_EXC:
+                                print('\n>> ATENÇÃO << Transferindo de EXC para BLEU\n')
+
+                                # Aguarda 2 segundos
+                                time.sleep(2)
+
+                                ############ TRANSFERÊNCIA EQUILIBRA SALDO ##########
+
+                                equilibraSaldo = (saldoBTC_BLEU + saldoBTC_EXC) / 2
+                                equilibraSaldo = str(equilibraSaldo)
+                                print(f'Transferindo: {equilibraSaldo} BTC')
+
+                                urlDirecttransferEXC = 'https://trade.exccripto.com/api/v3/private/directtransfer?apikey=' + keyEXC + '&nonce=' + str(
+                                    int(
+                                        time.time())) + '&asset=BTC&quantity=' + equilibraSaldo + '&exchangeto=1&' + 'accountto=' + emailBLEU
+
+                                # sign
+                                sign = hmac.new(secretEXC.encode(), urlDirecttransferEXC.encode(),
+                                                hashlib.sha512).hexdigest()
+                                # Adding sign to header
+                                headers = {'apisign': sign}
+                                # Make request
+                                response = requests.get(url=urlDirecttransferEXC, headers=headers)
+                                print(response.json())
+
+                                # Mostra saldo atualizado após transferência de equilíbrio
+                                print(f'Saldo atualizado na EXC: {saldoBTC_EXC:.8f} BTC')
+                                print(f'Saldo atualizado na BLEU: {saldoBTC_BLEU:.8f} BTC')
+
+                                ############ TRANSFERÊNCIA EQUILIBRA SALDO ##########
+
+                            else:
+                                print('>> SEM TRANSFERÊNCIA << Saldos iguais')
+
+                            print('---')
+
+                        elif funAutoBalance == 0:
+                            print(f'>> AUTO BALANCE: Função desativada!')
+
+                        else:
+                            print(f'Por favor, configure a função: AUTO BALANCE\nOpções:\n1 = Ativado\n2 = Desativado')
+
+                        ############################## EQUILIBRA SALDO ###############################
+
+                        time.sleep(1)
+
+                        ############################## MINIMA ########################################
+                        if funCompraMinima == 1:
+                            ################################################################
+                            # COMPRA QUANTIDADE MÍNIMA                                     #
+                            # Faz COMPRA MÍNIMA na EXC: MOEDA_MERCADO, PREÇO, QUANTIDADE   #
+                            ################################################################
+                            print(' >>> FAZENDO COMPRA MÍNIMA <<<\n')
+
+                            # calcula fee
+                            pagafee = (feeBLEU / 100) * minimaCompra_ETH_BTC
+                            print(f'Fee: {pagafee:.8f}')
+
+                            faz_compra = key_secretEXC.buy_limit('ETH_BTC', vendaAtivoEXC, minimaCompra_ETH_BTC)
+                            print(f'COMPRANDO... {minimaCompra_ETH_BTC:.8f} ETH')
+                            print(faz_compra)
+
+                            # Mensagem Telegram
+                            config.mensagem_telegram('>>> FAZENDO COMPRA MÍNIMA <<<')
+                            config.mensagem_telegram(
+                                f'>> VALORES: \nCompra: {vendaAtivoEXC:.8f} \nVenda: {compraAtivoBLEU:.8f} \nQuantidade: {minimaCompra_ETH_BTC:.8f}\n')
+                            config.mensagem_telegram(
+                                f'>> AÇÃO:\nComprando na EXC... {minimaCompra_ETH_BTC:.8f}\n{faz_compra}\n')
+
+                            log = open('logs/ETH_BTC.txt', 'a')
+                            log.write(f'>>> FAZENDO COMPRA MÍNIMA <<<\n')
+                            log.write(
+                                f'>> VALORES: \nCompra: {vendaAtivoEXC:.8f} \nVenda: {compraAtivoBLEU:.8f} \nQuantidade: {minimaCompra_ETH_BTC:.8f}\n')
+                            log.write('-' * 10)
+                            log.write(f'\n>> AÇÃO:\nComprando na EXC... {minimaCompra_ETH_BTC:.8f}\n{faz_compraEXC}\n')
+                            log.close()
+
+                            # Recebe resposta da ação COMPRA
+                            respostaFazCompra = faz_compra['result']
+                            if respostaFazCompra == listaErroMinima[0]:
+                                print('>> ERRO << Reiniciando verificação!')
+                                break
+                            elif respostaFazCompra == listaErroMinima[1]:
+                                print('>> ERRO << Reiniciando verificação!')
+                                break
+                            elif respostaFazCompra == listaErroMinima[2]:
+                                print('>> ERRO << Reiniciando verificação!')
+                                break
+                            elif respostaFazCompra == listaErroMinima[3]:
+                                print('>> ERRO << Reiniciando verificação!')
+                                break
+                            else:
+                                print('Sem erros na compra, continua...')
+
+                            ######################################
+                            # TRANSFERÊNCIA QUANTIDADE MINIMA    #
+                            # Faz TRANSFERÊNCIA da EXC para BLEU #
+                            ######################################
+                            print(f'TRANSFERINDO... {minimaCompra_ETH_BTC:.8f} ETH')
+                            mCOMPRA = str(minimaCompra_ETH_BTC)
                             urlDirecttransferEXC = 'https://trade.exccripto.com/api/v3/private/directtransfer?apikey=' + keyEXC + '&nonce=' + str(
                                 int(
-                                    time.time())) + '&asset=BTC&quantity=' + equilibraSaldo + '&exchangeto=1&' + 'accountto=' + emailBLEU
+                                    time.time())) + '&asset=ETH&quantity=' + mCOMPRA + '&exchangeto=1&' + 'accountto=' + emailBLEU
 
                             # sign
                             sign = hmac.new(secretEXC.encode(), urlDirecttransferEXC.encode(),
@@ -884,112 +1058,45 @@ while True:
                             response = requests.get(url=urlDirecttransferEXC, headers=headers)
                             print(response.json())
 
-                            # Mostra saldo atualizado após transferência de equilíbrio
-                            print(f'Saldo atualizado na EXC: {saldoBTC_EXC:.8f} BTC')
-                            print(f'Saldo atualizado na BLEU: {saldoBTC_BLEU:.8f} BTC')
+                            # Aguarda 2 segundos
+                            time.sleep(2)
 
-                            ############ TRANSFERÊNCIA EQUILIBRA SALDO ##########
+                            # Mensagem Telegram
+                            config.mensagem_telegram('>> TRANSFERÊNCIA: EXC para BLEU')
+                            config.mensagem_telegram(
+                                f'>> AÇÃO:\nQuantidade: {minimaCompra_ETH_BTC:.8f}\n{response.json()}\n')
+
+                            log = open('logs/ETH_BTC.txt', 'a')
+                            log.write(f'>> TRANSFERÊNCIA: EXC para BLEU\n')
+                            log.write('-' * 10)
+                            log.write(f'\n>> AÇÃO:\nQuantidade: {minimaCompra_ETH_BTC:.8f}\n{response.json()}\n')
+                            log.close()
+
+                            ######################################################
+                            # VENDA QUANTIDADE MÍNIMA                            #
+                            # Faz VENDA na BLEU: MOEDA_MERCADO, preço, quantidade #
+                            ######################################################
+                            print(f'VENDENDO... {minimaCompra_ETH_BTC:.8f} ETH')
+                            faz_vendaBLEU = key_secretBLEU.sell_limit('ETH_BTC', compraAtivoBLEU,
+                                                                      minimaCompra_ETH_BTC)
+                            print(faz_vendaBLEU)
+
+                            # Mensagem Telegram
+                            config.mensagem_telegram('>>> VENDA QUANTIDADE MÍNIMA <<<')
+                            config.mensagem_telegram(
+                                f'>> AÇÃO:\nQuantidade: {minimaCompra_ETH_BTC:.8f}\n{faz_vendaBLEU}\n')
+
+                            log = open('logs/ETH_BTC.txt', 'a')
+                            log.write(f'>>> VENDA QUANTIDADE MÍNIMA <<<\n')
+                            log.write('-' * 10)
+                            log.write(f'\n>> AÇÃO:\nQuantidade: {minimaCompra_ETH_BTC:.8f}\n{faz_vendaBLEU}\n')
+                            log.close()
+
+                        elif funCompraMinima == 0:
+                            print(f'>> COMPRA MÍNIMA: Função desativada!')
 
                         else:
-                            print('>> SEM TRANSFERÊNCIA << Saldos iguais')
-
-                        print('---')
-
-                        ############################## EQUILIBRA SALDO ###############################
-
-                        ############################## MINIMA ########################################
-
-                        ################################################################
-                        # COMPRA QUANTIDADE MÍNIMA                                     #
-                        # Faz COMPRA MÍNIMA na EXC: MOEDA_MERCADO, PREÇO, QUANTIDADE   #
-                        ################################################################
-                        print(' >>> FAZENDO COMPRA MÍNIMA <<<\n')
-
-                        # calcula fee
-                        pagafee = (feeBLEU / 100) * minimaCompra_ETH_BTC
-                        print(f'Fee: {pagafee:.8f}')
-
-                        faz_compra = key_secretEXC.buy_limit('ETH_BTC', vendaAtivoEXC, minimaCompra_ETH_BTC)
-                        print(f'COMPRANDO... {minimaCompra_ETH_BTC:.8f} ETH')
-                        print(faz_compra)
-
-                        # Mensagem Telegram
-                        config.mensagem_telegram('>>> FAZENDO COMPRA MÍNIMA <<<')
-                        config.mensagem_telegram(f'>> VALORES: \nCompra: {vendaAtivoEXC:.8f} \nVenda: {compraAtivoBLEU:.8f} \nQuantidade: {minimaCompra_ETH_BTC:.8f}\n')
-                        config.mensagem_telegram(f'>> AÇÃO:\nComprando na EXC... {minimaCompra_ETH_BTC:.8f}\n{faz_compra}\n')
-
-                        log = open('logs/ETH_BTC.txt', 'a')
-                        log.write(f'>>> FAZENDO COMPRA MÍNIMA <<<\n')
-                        log.write(f'>> VALORES: \nCompra: {vendaAtivoEXC:.8f} \nVenda: {compraAtivoBLEU:.8f} \nQuantidade: {minimaCompra_ETH_BTC:.8f}\n')
-                        log.write('-' * 10)
-                        log.write(f'\n>> AÇÃO:\nComprando na EXC... {minimaCompra_ETH_BTC:.8f}\n{faz_compraEXC}\n')
-                        log.close()
-
-                        # Recebe resposta da ação COMPRA
-                        respostaFazCompra = faz_compra['result']
-                        if respostaFazCompra == listaErroMinima[0]:
-                            print('>> ERRO << Reiniciando verificação!')
-                            break
-                        elif respostaFazCompra == listaErroMinima[1]:
-                            print('>> ERRO << Reiniciando verificação!')
-                            break
-                        elif respostaFazCompra == listaErroMinima[2]:
-                            print('>> ERRO << Reiniciando verificação!')
-                            break
-                        elif respostaFazCompra == listaErroMinima[3]:
-                            print('>> ERRO << Reiniciando verificação!')
-                            break
-                        else:
-                            print('Sem erros na compra, continua...')
-
-                        ######################################
-                        # TRANSFERÊNCIA QUANTIDADE MINIMA    #
-                        # Faz TRANSFERÊNCIA da EXC para BLEU #
-                        ######################################
-                        print(f'TRANSFERINDO... {minimaCompra_ETH_BTC:.8f} ETH')
-                        mCOMPRA = str(minimaCompra_ETH_BTC)
-                        urlDirecttransferEXC = 'https://trade.exccripto.com/api/v3/private/directtransfer?apikey=' + keyEXC + '&nonce=' + str(
-                            int(
-                                time.time())) + '&asset=ETH&quantity=' + mCOMPRA + '&exchangeto=1&' + 'accountto=' + emailBLEU
-
-                        # sign
-                        sign = hmac.new(secretEXC.encode(), urlDirecttransferEXC.encode(), hashlib.sha512).hexdigest()
-                        # Adding sign to header
-                        headers = {'apisign': sign}
-                        # Make request
-                        response = requests.get(url=urlDirecttransferEXC, headers=headers)
-                        print(response.json())
-
-                        # Aguarda 2 segundos
-                        time.sleep(2)
-
-                        # Mensagem Telegram
-                        config.mensagem_telegram('>> TRANSFERÊNCIA: EXC para BLEU')
-                        config.mensagem_telegram(f'>> AÇÃO:\nQuantidade: {minimaCompra_ETH_BTC:.8f}\n{response.json()}\n')
-
-                        log = open('logs/ETH_BTC.txt', 'a')
-                        log.write(f'>> TRANSFERÊNCIA: EXC para BLEU\n')
-                        log.write('-' * 10)
-                        log.write(f'\n>> AÇÃO:\nQuantidade: {minimaCompra_ETH_BTC:.8f}\n{response.json()}\n')
-                        log.close()
-
-                        ######################################################
-                        # VENDA QUANTIDADE MÍNIMA                            #
-                        # Faz VENDA na BLEU: MOEDA_MERCADO, preço, quantidade #
-                        ######################################################
-                        print(f'VENDENDO... {minimaCompra_ETH_BTC:.8f} ETH')
-                        faz_vendaBLEU = key_secretBLEU.sell_limit('ETH_BTC', compraAtivoBLEU, minimaCompra_ETH_BTC)
-                        print(faz_vendaBLEU)
-
-                        # Mensagem Telegram
-                        config.mensagem_telegram('>>> VENDA QUANTIDADE MÍNIMA <<<')
-                        config.mensagem_telegram(f'>> AÇÃO:\nQuantidade: {minimaCompra_ETH_BTC:.8f}\n{faz_vendaBLEU}\n')
-
-                        log = open('logs/ETH_BTC.txt', 'a')
-                        log.write(f'>>> VENDA QUANTIDADE MÍNIMA <<<\n')
-                        log.write('-' * 10)
-                        log.write(f'\n>> AÇÃO:\nQuantidade: {minimaCompra_ETH_BTC:.8f}\n{faz_vendaBLEU}\n')
-                        log.close()
+                            print(f'Por favor, configure a função: COMPRA MÍNIMA\nOpções:\n1 = Ativado\n2 = Desativado')
 
                         ############################## MINIMA ########################################
 
@@ -1108,64 +1215,151 @@ while True:
                         print('\nATENÇÃO >> SALDO INSUFICIENTE << ')
 
                         ############################## EQUILIBRA SALDO ###############################
-
-                        print('---')
-                        print(' >>> EQUILIBRANDO SALDO <<<')
-
-                        # Aguarda 2 segundos
-                        time.sleep(2)
-
-                        saldoBTC_BLEU = key_secretBLEU.get_balance('BTC')
-                        saldoBTC_BLEU = float(saldoBTC_BLEU['result'][0]['Balance'])
-                        print(f'Saldo na BLEU: {saldoBTC_BLEU:.8f} BTC')
-
-                        saldoBTC_EXC = key_secretEXC.get_balance('BTC')
-                        saldoBTC_EXC = float(saldoBTC_EXC['result'][0]['Balance'])
-                        print(f'Saldo na EXC: {saldoBTC_EXC:.8f} BTC')
-
-                        if saldoBTC_BLEU > saldoBTC_EXC:
-                            print('\n>> ATENÇÃO << Transferindo de BLEU para EXC\n')
-
-                            ############ TRANSFERÊNCIA EQUILIBRA SALDO ##########
-
-                            equilibraSaldo = (saldoBTC_EXC + saldoBTC_BLEU) / 2
-                            equilibraSaldo = str(equilibraSaldo)
-                            print(f'Transferindo... {equilibraSaldo} BTC')
-
-                            urlDirecttransferBLEU = 'https://bleutrade.com/api/v3/private/directtransfer?apikey=' + keyBLEU + '&nonce=' + str(
-                                int(
-                                    time.time())) + '&asset=BTC&quantity=' + equilibraSaldo + '&exchangeto=2&' + 'accountto=' + emailEXC
-
-                            # sign
-                            sign = hmac.new(secretBLEU.encode(), urlDirecttransferBLEU.encode(),
-                                            hashlib.sha512).hexdigest()
-                            # Adding sign to header
-                            headers = {'apisign': sign}
-                            # Make request
-                            response = requests.get(url=urlDirecttransferBLEU, headers=headers)
-                            print(response.json())
-
-                            # Mostra saldo atualizado após transferência de equilíbrio
-                            print(f'Saldo atualizado na EXC: {saldoBTC_EXC:.8f} BTC')
-                            print(f'Saldo atualizado na BLEU: {saldoBTC_BLEU:.8f} BTC')
-
-                            ############ TRANSFERÊNCIA EQUILIBRA SALDO ##########
-
-                        elif saldoBTC_BLEU < saldoBTC_EXC:
-                            print('\n>> ATENÇÃO << Transferindo de EXC para BLEU\n')
+                        if funAutoBalance == 1:
+                            print('---')
+                            print(' >>> EQUILIBRANDO SALDO <<<')
 
                             # Aguarda 2 segundos
                             time.sleep(2)
 
-                            ############ TRANSFERÊNCIA EQUILIBRA SALDO ##########
+                            saldoBTC_BLEU = key_secretBLEU.get_balance('BTC')
+                            saldoBTC_BLEU = float(saldoBTC_BLEU['result'][0]['Balance'])
+                            print(f'Saldo na BLEU: {saldoBTC_BLEU:.8f} BTC')
 
-                            equilibraSaldo = (saldoBTC_BLEU + saldoBTC_EXC) / 2
-                            equilibraSaldo = str(equilibraSaldo)
-                            print(f'Transferindo: {equilibraSaldo} BTC')
+                            saldoBTC_EXC = key_secretEXC.get_balance('BTC')
+                            saldoBTC_EXC = float(saldoBTC_EXC['result'][0]['Balance'])
+                            print(f'Saldo na EXC: {saldoBTC_EXC:.8f} BTC')
 
+                            if saldoBTC_BLEU > saldoBTC_EXC:
+                                print('\n>> ATENÇÃO << Transferindo de BLEU para EXC\n')
+
+                                ############ TRANSFERÊNCIA EQUILIBRA SALDO ##########
+
+                                equilibraSaldo = (saldoBTC_EXC + saldoBTC_BLEU) / 2
+                                equilibraSaldo = str(equilibraSaldo)
+                                print(f'Transferindo... {equilibraSaldo} BTC')
+
+                                urlDirecttransferBLEU = 'https://bleutrade.com/api/v3/private/directtransfer?apikey=' + keyBLEU + '&nonce=' + str(
+                                    int(
+                                        time.time())) + '&asset=BTC&quantity=' + equilibraSaldo + '&exchangeto=2&' + 'accountto=' + emailEXC
+
+                                # sign
+                                sign = hmac.new(secretBLEU.encode(), urlDirecttransferBLEU.encode(),
+                                                hashlib.sha512).hexdigest()
+                                # Adding sign to header
+                                headers = {'apisign': sign}
+                                # Make request
+                                response = requests.get(url=urlDirecttransferBLEU, headers=headers)
+                                print(response.json())
+
+                                # Mostra saldo atualizado após transferência de equilíbrio
+                                print(f'Saldo atualizado na EXC: {saldoBTC_EXC:.8f} BTC')
+                                print(f'Saldo atualizado na BLEU: {saldoBTC_BLEU:.8f} BTC')
+
+                                ############ TRANSFERÊNCIA EQUILIBRA SALDO ##########
+
+                            elif saldoBTC_BLEU < saldoBTC_EXC:
+                                print('\n>> ATENÇÃO << Transferindo de EXC para BLEU\n')
+
+                                # Aguarda 2 segundos
+                                time.sleep(2)
+
+                                ############ TRANSFERÊNCIA EQUILIBRA SALDO ##########
+
+                                equilibraSaldo = (saldoBTC_BLEU + saldoBTC_EXC) / 2
+                                equilibraSaldo = str(equilibraSaldo)
+                                print(f'Transferindo: {equilibraSaldo} BTC')
+
+                                urlDirecttransferEXC = 'https://trade.exccripto.com/api/v3/private/directtransfer?apikey=' + keyEXC + '&nonce=' + str(
+                                    int(
+                                        time.time())) + '&asset=BTC&quantity=' + equilibraSaldo + '&exchangeto=1&' + 'accountto=' + emailBLEU
+
+                                # sign
+                                sign = hmac.new(secretEXC.encode(), urlDirecttransferEXC.encode(),
+                                                hashlib.sha512).hexdigest()
+                                # Adding sign to header
+                                headers = {'apisign': sign}
+                                # Make request
+                                response = requests.get(url=urlDirecttransferEXC, headers=headers)
+                                print(response.json())
+
+                                # Mostra saldo atualizado após transferência de equilíbrio
+                                print(f'Saldo atualizado na EXC: {saldoBTC_EXC:.8f} BTC')
+                                print(f'Saldo atualizado na BLEU: {saldoBTC_BLEU:.8f} BTC')
+
+                                ############ TRANSFERÊNCIA EQUILIBRA SALDO ##########
+
+                            else:
+                                print('>> SEM TRANSFERÊNCIA << Saldos iguais')
+
+                            print('---')
+
+                        elif funAutoBalance == 0:
+                            print(f'>> AUTO BALANCE: Função desativada!')
+
+                        else:
+                            print(f'Por favor, configure a função: AUTO BALANCE\nOpções:\n1 = Ativado\n2 = Desativado')
+
+                        ############################## EQUILIBRA SALDO ###############################
+
+                        time.sleep(1)
+
+                        ############################## MINIMA ########################################
+                        if funCompraMinima == 1:
+                            ################################################################
+                            # COMPRA QUANTIDADE MÍNIMA                                     #
+                            # Faz COMPRA MÍNIMA na EXC: MOEDA_MERCADO, PREÇO, QUANTIDADE   #
+                            ################################################################
+                            print(' >>> FAZENDO COMPRA MÍNIMA <<<\n')
+                            faz_compra = key_secretEXC.buy_limit('ETH_BTC', vendaAtivoEXC, minimaCompra_ETH_BTC)
+                            print(f'COMPRANDO... {minimaCompra_ETH_BTC:.8f} ETH')
+                            print(faz_compra)
+
+                            # calcula fee
+                            pagafee = (feeBLEU / 100) * minimaCompra_ETH_BTC
+                            print(f'Fee: {pagafee:.8f}')
+
+                            # Mensagem Telegram
+                            config.mensagem_telegram('>>> FAZENDO COMPRA MÍNIMA <<<')
+                            config.mensagem_telegram(
+                                f'>> VALORES: \nCompra: {vendaAtivoEXC:.8f} \nVenda: {compraAtivoBLEU:.8f} \nQuantidade: {minimaCompra_ETH_BTC:.8f}\n')
+                            config.mensagem_telegram(
+                                f'>> AÇÃO:\nComprando na EXC... {minimaCompra_ETH_BTC:.8f}\n{faz_compra}\n')
+
+                            log = open('logs/ETH_BTC.txt', 'a')
+                            log.write(f'>>> FAZENDO COMPRA MÍNIMA <<<\n')
+                            log.write(
+                                f'>> VALORES: \nCompra: {vendaAtivoEXC:.8f} \nVenda: {compraAtivoBLEU:.8f} \nQuantidade: {minimaCompra_ETH_BTC:.8f}\n')
+                            log.write('-' * 10)
+                            log.write(f'\n>> AÇÃO:\nComprando na EXC... {minimaCompra_ETH_BTC:.8f}\n{faz_compra}\n')
+                            log.close()
+
+                            # Recebe resposta da ação COMPRA
+                            respostaFazCompra = faz_compra['result']
+                            if respostaFazCompra == listaErroMinima[0]:
+                                print('>> ERRO << Reiniciando verificação!')
+                                break
+                            elif respostaFazCompra == listaErroMinima[1]:
+                                print('>> ERRO << Reiniciando verificação!')
+                                break
+                            elif respostaFazCompra == listaErroMinima[2]:
+                                print('>> ERRO << Reiniciando verificação!')
+                                break
+                            elif respostaFazCompra == listaErroMinima[3]:
+                                print('>> ERRO << Reiniciando verificação!')
+                                break
+                            else:
+                                print('Sem erros na compra, continua...')
+
+                            ######################################
+                            # TRANSFERÊNCIA QUANTIDADE MINIMA    #
+                            # Faz TRANSFERÊNCIA da EXC para BLEU #
+                            ######################################
+                            print(f'TRANSFERINDO... {minimaCompra_ETH_BTC:.8f} ETH')
+                            mCOMPRA = str(minimaCompra_ETH_BTC)
                             urlDirecttransferEXC = 'https://trade.exccripto.com/api/v3/private/directtransfer?apikey=' + keyEXC + '&nonce=' + str(
                                 int(
-                                    time.time())) + '&asset=BTC&quantity=' + equilibraSaldo + '&exchangeto=1&' + 'accountto=' + emailBLEU
+                                    time.time())) + '&asset=ETH&quantity=' + mCOMPRA + '&exchangeto=1&' + 'accountto=' + emailBLEU
 
                             # sign
                             sign = hmac.new(secretEXC.encode(), urlDirecttransferEXC.encode(),
@@ -1176,111 +1370,45 @@ while True:
                             response = requests.get(url=urlDirecttransferEXC, headers=headers)
                             print(response.json())
 
-                            # Mostra saldo atualizado após transferência de equilíbrio
-                            print(f'Saldo atualizado na EXC: {saldoBTC_EXC:.8f} BTC')
-                            print(f'Saldo atualizado na BLEU: {saldoBTC_BLEU:.8f} BTC')
+                            # Aguarda 2 segundos
+                            time.sleep(2)
 
-                            ############ TRANSFERÊNCIA EQUILIBRA SALDO ##########
+                            # Mensagem Telegram
+                            config.mensagem_telegram('>> TRANSFERÊNCIA: EXC para BLEU')
+                            config.mensagem_telegram(
+                                f'>> AÇÃO:\nQuantidade: {minimaCompra_ETH_BTC:.8f}\n{response.json()}\n')
+
+                            log = open('logs/ETH_BTC.txt', 'a')
+                            log.write(f'>> TRANSFERÊNCIA: EXC para BLEU\n')
+                            log.write('-' * 10)
+                            log.write(f'\n>> AÇÃO:\nQuantidade: {minimaCompra_ETH_BTC:.8f}\n{response.json()}\n')
+                            log.close()
+
+                            ######################################################
+                            # VENDA QUANTIDADE MÍNIMA                            #
+                            # Faz VENDA na BLEU: MOEDA_MERCADO, preço, quantidade #
+                            ######################################################
+                            print(f'VENDENDO... {minimaCompra_ETH_BTC:.8f} ETH')
+                            faz_vendaBLEU = key_secretBLEU.sell_limit('ETH_BTC', compraAtivoBLEU,
+                                                                      minimaCompra_ETH_BTC)
+                            print(faz_vendaBLEU)
+
+                            # Mensagem Telegram
+                            config.mensagem_telegram('>>> VENDA QUANTIDADE MÍNIMA <<<')
+                            config.mensagem_telegram(
+                                f'>> AÇÃO:\nQuantidade: {minimaCompra_ETH_BTC:.8f}\n{faz_vendaBLEU}\n')
+
+                            log = open('logs/ETH_BTC.txt', 'a')
+                            log.write(f'>>> VENDA QUANTIDADE MÍNIMA <<<\n')
+                            log.write('-' * 10)
+                            log.write(f'\n>> AÇÃO:\nQuantidade: {minimaCompra_ETH_BTC:.8f}\n{faz_vendaBLEU}\n')
+                            log.close()
+
+                        elif funCompraMinima == 0:
+                            print(f'>> COMPRA MÍNIMA: Função desativada!')
 
                         else:
-                            print('>> SEM TRANSFERÊNCIA << Saldos iguais')
-
-                        print('---')
-
-                        ############################## EQUILIBRA SALDO ###############################
-
-                        ############################## MINIMA ########################################
-
-                        ################################################################
-                        # COMPRA QUANTIDADE MÍNIMA                                     #
-                        # Faz COMPRA MÍNIMA na EXC: MOEDA_MERCADO, PREÇO, QUANTIDADE   #
-                        ################################################################
-                        print(' >>> FAZENDO COMPRA MÍNIMA <<<\n')
-                        faz_compra = key_secretEXC.buy_limit('ETH_BTC', vendaAtivoEXC, minimaCompra_ETH_BTC)
-                        print(f'COMPRANDO... {minimaCompra_ETH_BTC:.8f} ETH')
-                        print(faz_compra)
-
-                        # calcula fee
-                        pagafee = (feeBLEU / 100) * minimaCompra_ETH_BTC
-                        print(f'Fee: {pagafee:.8f}')
-
-                        # Mensagem Telegram
-                        config.mensagem_telegram('>>> FAZENDO COMPRA MÍNIMA <<<')
-                        config.mensagem_telegram(f'>> VALORES: \nCompra: {vendaAtivoEXC:.8f} \nVenda: {compraAtivoBLEU:.8f} \nQuantidade: {minimaCompra_ETH_BTC:.8f}\n')
-                        config.mensagem_telegram(f'>> AÇÃO:\nComprando na EXC... {minimaCompra_ETH_BTC:.8f}\n{faz_compra}\n')
-
-                        log = open('logs/ETH_BTC.txt', 'a')
-                        log.write(f'>>> FAZENDO COMPRA MÍNIMA <<<\n')
-                        log.write(f'>> VALORES: \nCompra: {vendaAtivoEXC:.8f} \nVenda: {compraAtivoBLEU:.8f} \nQuantidade: {minimaCompra_ETH_BTC:.8f}\n')
-                        log.write('-' * 10)
-                        log.write(f'\n>> AÇÃO:\nComprando na EXC... {minimaCompra_ETH_BTC:.8f}\n{faz_compra}\n')
-                        log.close()
-
-                        # Recebe resposta da ação COMPRA
-                        respostaFazCompra = faz_compra['result']
-                        if respostaFazCompra == listaErroMinima[0]:
-                            print('>> ERRO << Reiniciando verificação!')
-                            break
-                        elif respostaFazCompra == listaErroMinima[1]:
-                            print('>> ERRO << Reiniciando verificação!')
-                            break
-                        elif respostaFazCompra == listaErroMinima[2]:
-                            print('>> ERRO << Reiniciando verificação!')
-                            break
-                        elif respostaFazCompra == listaErroMinima[3]:
-                            print('>> ERRO << Reiniciando verificação!')
-                            break
-                        else:
-                            print('Sem erros na compra, continua...')
-
-                        ######################################
-                        # TRANSFERÊNCIA QUANTIDADE MINIMA    #
-                        # Faz TRANSFERÊNCIA da EXC para BLEU #
-                        ######################################
-                        print(f'TRANSFERINDO... {minimaCompra_ETH_BTC:.8f} ETH')
-                        mCOMPRA = str(minimaCompra_ETH_BTC)
-                        urlDirecttransferEXC = 'https://trade.exccripto.com/api/v3/private/directtransfer?apikey=' + keyEXC + '&nonce=' + str(
-                            int(
-                                time.time())) + '&asset=ETH&quantity=' + mCOMPRA + '&exchangeto=1&' + 'accountto=' + emailBLEU
-
-                        # sign
-                        sign = hmac.new(secretEXC.encode(), urlDirecttransferEXC.encode(), hashlib.sha512).hexdigest()
-                        # Adding sign to header
-                        headers = {'apisign': sign}
-                        # Make request
-                        response = requests.get(url=urlDirecttransferEXC, headers=headers)
-                        print(response.json())
-
-                        # Aguarda 2 segundos
-                        time.sleep(2)
-
-                        # Mensagem Telegram
-                        config.mensagem_telegram('>> TRANSFERÊNCIA: EXC para BLEU')
-                        config.mensagem_telegram(f'>> AÇÃO:\nQuantidade: {minimaCompra_ETH_BTC:.8f}\n{response.json()}\n')
-
-                        log = open('logs/ETH_BTC.txt', 'a')
-                        log.write(f'>> TRANSFERÊNCIA: EXC para BLEU\n')
-                        log.write('-' * 10)
-                        log.write(f'\n>> AÇÃO:\nQuantidade: {minimaCompra_ETH_BTC:.8f}\n{response.json()}\n')
-                        log.close()
-
-                        ######################################################
-                        # VENDA QUANTIDADE MÍNIMA                            #
-                        # Faz VENDA na BLEU: MOEDA_MERCADO, preço, quantidade #
-                        ######################################################
-                        print(f'VENDENDO... {minimaCompra_ETH_BTC:.8f} ETH')
-                        faz_vendaBLEU = key_secretBLEU.sell_limit('ETH_BTC', compraAtivoBLEU, minimaCompra_ETH_BTC)
-                        print(faz_vendaBLEU)
-
-                        # Mensagem Telegram
-                        config.mensagem_telegram('>>> VENDA QUANTIDADE MÍNIMA <<<')
-                        config.mensagem_telegram(f'>> AÇÃO:\nQuantidade: {minimaCompra_ETH_BTC:.8f}\n{faz_vendaBLEU}\n')
-
-                        log = open('logs/ETH_BTC.txt', 'a')
-                        log.write(f'>>> VENDA QUANTIDADE MÍNIMA <<<\n')
-                        log.write('-' * 10)
-                        log.write(f'\n>> AÇÃO:\nQuantidade: {minimaCompra_ETH_BTC:.8f}\n{faz_vendaBLEU}\n')
-                        log.close()
+                            print(f'Por favor, configure a função: COMPRA MÍNIMA\nOpções:\n1 = Ativado\n2 = Desativado')
 
                         ############################## MINIMA ########################################
 
