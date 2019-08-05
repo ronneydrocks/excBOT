@@ -289,8 +289,46 @@ class excBot:
         return result
 
     # 'private/buylimitami': Usado para enviar ordens de compra com características AMI (Auto Maker Inversible).
+    # 'private/buylimitami': Use para enviar ordem de COMPRA AMI
+    # params: market  : string (ex: LTC_BTC)
+    #         rate    : string (ex: 0.01000000)
+    #         amirate : string (ex: 0.01500000)
+    #         quantity: string (ex: 1.12345678)
+    #         comments: string (opcional, até 128 caracteres)
+    # return: JSON
+    def buy_limitami(self, market, rate, amirate, quantity, comments=''):
+        query = 'private/buylimitami'
+        params = {
+            'market': market,
+            'rate': rate,
+            'amirate': amirate,
+            'quantity': quantity,
+            'comments': comments
+        }
+        self.definir_parametros(params)
+        result = self.fazer_chamada_api_privada(query)
+        return result
 
-    # 'private/selllimitami': Usado para enviar pedidos de venda com características AMI (Auto Maker Inversible).
+    # 'private/selllimitami': Usado para enviar ordens de venda com características AMI (Auto Maker Inversible).
+    # 'private/selllimitami': Use para enviar ordem de VENDA AMI
+    # params: market  : string (ex: LTC_BTC)
+    #         rate    : string (ex: 0.01000000)
+    #         amirate : string (ex: 0.00500000)
+    #         quantity: string (ex: 1.12345678)
+    #         comments: string (opcional, até 128 caracteres)
+    # return: JSON
+    def sell_limitami(self, market, rate, amirate, quantity, comments=''):
+        query = 'private/selllimitami'
+        params = {
+            'market': market,
+            'rate': rate,
+            'amirate': amirate,
+            'quantity': quantity,
+            'comments': comments
+        }
+        self.definir_parametros(params)
+        result = self.fazer_chamada_api_privada(query)
+        return result
 
     # 'private/buystoplimit': Usado para enviar pedidos com limite de compra.
 
