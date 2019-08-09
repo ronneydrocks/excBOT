@@ -24,7 +24,7 @@ Atualmente o BOT está na versão v0.1.5(TESTE) e sua função é automatizar ar
 * AUTO BALANCE (Equilibra saldo)
 * COMPRA MÍNIMA (Quando não tiver saldo suficiente, efetuar uma compra mínima)
 
-DICA:
+# DICA:
 * A principal configuração do BOT para ficar positivo, é o SPREAD. No arquivo de configuração, config.py, tem uma opção para configura-lo.
 * Para ficar positivo é necessário ficar acima do SPREAD + FEE.
 * FEE  0.25 (EXC/BLEU)
