@@ -41,6 +41,9 @@ O BOT monitora os books e compara os valores, caso encontre oportunidades, compr
 4. Configurar BOT com KEYs (EXC e BLEU)
 5. Rodar
 
+# TUTORIAL
+Acesse o portal CRIPTO SPACE e siga o tutorial. http://criptospace.com.br/portal/educacao/tutorial/excbot-robo-de-arbitragem-entre-exc-cripto-e-bleutrade 
+
 # COMO EXECUTAR
 Após instalação e configuração. Abra um terminal e execute o comando para que o BOT inicie o trabalho.
 
