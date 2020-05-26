@@ -2,7 +2,7 @@
 O BOT está em fase de testes, NÃO HÁ NENHUMA GARANTIA DE GANHOS. O BOT está sujeito a erros e por esse motivo está em constantes atualizações. O desenvolvedor do excBOT NÃO SE RESPONSABILIZA POR PREJUÍZOS ocasionados por mal uso do BOT.
 
 # excBOT
-Atualmente o BOT está na versão v0.1.5(TESTE) e sua função é automatizar arbitragens entre as EXC CRIPTO e BLEUTRADE. Comprar mais barato em uma exchange e vender mais caro na outra.
+Atualmente o BOT está na versão v0.1.6(TESTE) e sua função é automatizar arbitragens entre as EXC CRIPTO e BLEUTRADE. Comprar mais barato em uma exchange e vender mais caro na outra.
 
 # FUNÇÕES
 * Monitorar livro de ordens
